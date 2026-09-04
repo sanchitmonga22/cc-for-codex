@@ -1,0 +1,4 @@
+interface:
+  display_name: "Claude Setup"
+  short_description: "Check local Claude Code readiness"
+  default_prompt: "Use $claude-setup to verify that the local Claude Code CLI is installed and authenticated."

@@ -1,0 +1,27 @@
+{
+  "name": "cc-for-codex",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A Codex plugin that orchestrates a locally installed Claude Code CLI with explicit trust gates.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sanchitmonga22/cc-for-codex.git"
+  },
+  "bin": {
+    "cc-for-codex": "plugins/cc-for-codex/scripts/cc-for-codex"
+  },
+  "scripts": {
+    "audit:claude": "node scripts/audit-claude-cli.mjs",
+    "audit:docs": "node scripts/audit-official-docs.mjs",
+    "check": "npm run check:offline && npm run audit:docs",
+    "check:offline": "npm run lint && npm test && npm run validate",
+    "lint": "node --check plugins/cc-for-codex/skills/claude-code/scripts/cc-for-codex.mjs && node --check plugins/cc-for-codex/skills/claude-code/scripts/lib/bridge.mjs && node --check plugins/cc-for-codex/skills/claude-code/scripts/lib/runtime.mjs && node --check scripts/audit-claude-cli.mjs && node --check scripts/audit-official-docs.mjs && node --check scripts/validate.mjs && node --check tests/fixtures/fake-claude.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "validate": "node scripts/validate.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

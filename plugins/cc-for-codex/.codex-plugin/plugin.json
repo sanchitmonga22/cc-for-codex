@@ -1,0 +1,40 @@
+{
+  "name": "cc-for-codex",
+  "version": "0.1.0",
+  "description": "Run guarded Claude Code reviews, delegation, and session workflows from Codex.",
+  "author": {
+    "name": "Sanchit Monga",
+    "url": "https://github.com/sanchitmonga22"
+  },
+  "homepage": "https://github.com/sanchitmonga22/cc-for-codex#readme",
+  "repository": "https://github.com/sanchitmonga22/cc-for-codex",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "codex",
+    "code-review",
+    "delegation",
+    "second-opinion"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "CC for Codex",
+    "shortDescription": "Use local Claude Code workflows from Codex.",
+    "longDescription": "Ask Claude Code for a second opinion, run read-only and adversarial reviews, delegate isolated work, and manage background Claude sessions from Codex.",
+    "developerName": "Sanchit Monga",
+    "category": "Productivity",
+    "capabilities": [
+      "Code review",
+      "Task delegation",
+      "Session management"
+    ],
+    "defaultPrompt": [
+      "Use Claude Code to review my current changes.",
+      "Ask Claude Code for a second opinion on this design.",
+      "Show my Claude Code background sessions."
+    ],
+    "brandColor": "#D97757",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.png"
+  }
+}

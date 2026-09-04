@@ -1,0 +1,17 @@
+{
+  "description": "Optional Claude stop-time review gate for CC for Codex.",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${PLUGIN_ROOT}/hooks/stop-review-gate\"",
+            "timeout": 600,
+            "statusMessage": "Running opt-in Claude review gate"
+          }
+        ]
+      }
+    ]
+  }
+}

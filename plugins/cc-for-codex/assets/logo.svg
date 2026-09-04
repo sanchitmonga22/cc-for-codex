@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-labelledby="title desc">
+  <title id="title">CC for Codex</title>
+  <desc id="desc">Claude Code workflows inside Codex.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#111827"/>
+      <stop offset="0.62" stop-color="#1F2937"/>
+      <stop offset="1" stop-color="#431407"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#38BDF8"/>
+      <stop offset="0.5" stop-color="#F59E0B"/>
+      <stop offset="1" stop-color="#FB7185"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="400" rx="56" fill="url(#bg)"/>
+  <circle cx="1080" cy="30" r="210" fill="#F97316" opacity="0.09"/>
+  <g transform="translate(90 82)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m92 18-74 100 74 100" stroke="#93C5FD" stroke-width="30"/>
+    <path d="m224 18 74 100-74 100" stroke="#FDBA74" stroke-width="30"/>
+    <path d="M79 118h158" stroke="url(#line)" stroke-width="24"/>
+    <circle cx="158" cy="118" r="28" fill="#111827" stroke="#FBBF24" stroke-width="13"/>
+  </g>
+  <g font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">
+    <text x="468" y="178" fill="#F9FAFB" font-size="78" font-weight="750">CC for Codex</text>
+    <text x="472" y="238" fill="#D1D5DB" font-size="30">Claude Code workflows, safely orchestrated.</text>
+    <rect x="472" y="275" width="390" height="7" rx="3.5" fill="url(#line)"/>
+  </g>
+</svg>

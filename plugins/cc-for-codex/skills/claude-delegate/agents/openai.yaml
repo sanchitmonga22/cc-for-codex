@@ -1,0 +1,4 @@
+interface:
+  display_name: "Claude Delegate"
+  short_description: "Delegate isolated tasks to Claude Code"
+  default_prompt: "Use $claude-delegate to hand an isolated task to the local Claude Code CLI."

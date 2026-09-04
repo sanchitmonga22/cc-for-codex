@@ -1,0 +1,4 @@
+interface:
+  display_name: "Claude Code"
+  short_description: "Use local Claude Code from Codex"
+  default_prompt: "Use $claude-code to ask the locally installed Claude Code CLI for a second opinion."

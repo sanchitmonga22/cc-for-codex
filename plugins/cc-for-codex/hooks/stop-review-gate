@@ -1,0 +1,12 @@
+#!/bin/sh
+
+case "$0" in
+  */*) hook_dir=${0%/*} ;;
+  *)
+    printf '%s\n' "cc-for-codex: invalid hook launcher path" >&2
+    exit 1
+    ;;
+esac
+
+hook_dir=$(CDPATH= cd -P "$hook_dir" 2>/dev/null && pwd -P) || exit 1
+exec "$hook_dir/../scripts/cc-for-codex" hook-stop-review

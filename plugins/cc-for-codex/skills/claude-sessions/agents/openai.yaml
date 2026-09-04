@@ -1,0 +1,4 @@
+interface:
+  display_name: "Claude Sessions"
+  short_description: "Manage Claude background sessions"
+  default_prompt: "Use $claude-sessions to inspect and manage local Claude Code background sessions."

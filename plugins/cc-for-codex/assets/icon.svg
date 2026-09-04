@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">CC for Codex</title>
+  <desc id="desc">Two code brackets joined by a safe local bridge.</desc>
+  <defs>
+    <linearGradient id="background" x1="48" y1="36" x2="464" y2="476" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#111827"/>
+      <stop offset="0.55" stop-color="#1F2937"/>
+      <stop offset="1" stop-color="#431407"/>
+    </linearGradient>
+    <linearGradient id="bridge" x1="100" y1="256" x2="412" y2="256" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#38BDF8"/>
+      <stop offset="0.48" stop-color="#F59E0B"/>
+      <stop offset="1" stop-color="#FB7185"/>
+    </linearGradient>
+    <filter id="shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#000000" flood-opacity="0.36"/>
+    </filter>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#background)"/>
+  <circle cx="430" cy="78" r="126" fill="#F97316" opacity="0.10"/>
+  <circle cx="54" cy="466" r="136" fill="#38BDF8" opacity="0.08"/>
+  <g filter="url(#shadow)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M188 142 82 256l106 114" stroke="#93C5FD" stroke-width="42"/>
+    <path d="m324 142 106 114-106 114" stroke="#FDBA74" stroke-width="42"/>
+    <path d="M171 256h170" stroke="url(#bridge)" stroke-width="34"/>
+    <circle cx="256" cy="256" r="38" fill="#111827" stroke="#FBBF24" stroke-width="18"/>
+  </g>
+</svg>

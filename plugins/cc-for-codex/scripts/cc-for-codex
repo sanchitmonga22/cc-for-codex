@@ -1,0 +1,56 @@
+#!/bin/sh
+
+set -f
+
+fail() {
+  printf '%s\n' "cc-for-codex: $1" >&2
+  exit 127
+}
+
+launcher_path=$0
+case "$launcher_path" in
+  /*) ;;
+  */*)
+    launcher_parent=${launcher_path%/*}
+    launcher_name=${launcher_path##*/}
+    launcher_parent=$(CDPATH= cd -P "$launcher_parent" 2>/dev/null && pwd -P) || \
+      fail "cannot resolve the installed launcher directory"
+    launcher_path=$launcher_parent/$launcher_name
+    ;;
+  *)
+    launcher_path=$(command -v "$launcher_path" 2>/dev/null) || \
+      fail "cannot resolve the installed launcher from PATH"
+    case "$launcher_path" in
+      /*) ;;
+      *) fail "the installed launcher resolved through an untrusted relative PATH entry" ;;
+    esac
+    ;;
+esac
+
+if [ -x /usr/bin/readlink ]; then
+  readlink_bin=/usr/bin/readlink
+elif [ -x /bin/readlink ]; then
+  readlink_bin=/bin/readlink
+else
+  readlink_bin=
+fi
+
+hops=0
+while [ -L "$launcher_path" ]; do
+  [ -n "$readlink_bin" ] || fail "cannot resolve the installed launcher symlink"
+  hops=$((hops + 1))
+  [ "$hops" -le 40 ] || fail "installed launcher symlink chain is too deep"
+  link_target=$($readlink_bin "$launcher_path") || fail "cannot read the installed launcher symlink"
+  case "$link_target" in
+    /*) launcher_path=$link_target ;;
+    *) launcher_path=${launcher_path%/*}/$link_target ;;
+  esac
+  launcher_parent=${launcher_path%/*}
+  launcher_name=${launcher_path##*/}
+  launcher_parent=$(CDPATH= cd -P "$launcher_parent" 2>/dev/null && pwd -P) || \
+    fail "cannot resolve the installed launcher symlink directory"
+  launcher_path=$launcher_parent/$launcher_name
+done
+
+launcher_dir=${launcher_path%/*}
+exec "$launcher_dir/../skills/claude-code/scripts/cc-for-codex" "$@"

@@ -1,0 +1,10 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+coverage/
+node_modules/
+reference/
+*.log
+*.tmp
+.claude/worktrees/

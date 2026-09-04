@@ -1,0 +1,20 @@
+{
+  "name": "cc-for-codex",
+  "interface": {
+    "displayName": "CC for Codex"
+  },
+  "plugins": [
+    {
+      "name": "cc-for-codex",
+      "source": {
+        "source": "local",
+        "path": "./plugins/cc-for-codex"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_USE"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

@@ -1,0 +1,144 @@
+#!/bin/sh
+
+# Resolve Node before any JavaScript from the current checkout can run. A bare
+# `node` lookup would let an untrusted repository prepend its own executable.
+set -f
+
+fail() {
+  printf '%s\n' "cc-for-codex: $1" >&2
+  exit 127
+}
+
+case "$0" in
+  */*) launcher_dir=${0%/*} ;;
+  *) fail "invoke this launcher by path, not through an unverified PATH entry" ;;
+esac
+
+launcher_dir=$(CDPATH= cd -P "$launcher_dir" 2>/dev/null && pwd -P) || \
+  fail "cannot resolve the installed launcher directory"
+working_dir=$(pwd -P) || fail "cannot resolve the current working directory"
+
+# Node can load arbitrary JavaScript before the entrypoint through inherited
+# startup variables. The bridge never needs either mechanism.
+unset NODE_OPTIONS NODE_PATH
+
+# A linked Git worktree can live outside its main checkout. Recover the common
+# checkout root using shell builtins so a Node shim from that shared repository
+# is rejected too.
+linked_root=
+cursor=$working_dir
+while :; do
+  marker=$cursor/.git
+  if [ -f "$marker" ] && [ ! -L "$marker" ]; then
+    gitdir_line=
+    IFS= read -r gitdir_line < "$marker" || [ -n "$gitdir_line" ]
+    case "$gitdir_line" in
+      "gitdir: "*)
+        gitdir_value=${gitdir_line#gitdir: }
+        case "$gitdir_value" in
+          /*) gitdir_path=$gitdir_value ;;
+          *) gitdir_path=$cursor/$gitdir_value ;;
+        esac
+        gitdir_path=$(CDPATH= cd -P "$gitdir_path" 2>/dev/null && pwd -P) || gitdir_path=
+        if [ -n "$gitdir_path" ] && [ -f "$gitdir_path/commondir" ] && \
+           [ ! -L "$gitdir_path/commondir" ]; then
+          common_value=
+          IFS= read -r common_value < "$gitdir_path/commondir" || [ -n "$common_value" ]
+          case "$common_value" in
+            /*) common_path=$common_value ;;
+            *) common_path=$gitdir_path/$common_value ;;
+          esac
+          common_path=$(CDPATH= cd -P "$common_path" 2>/dev/null && pwd -P) || common_path=
+          case "$common_path" in
+            */.git) linked_root=${common_path%/.git} ;;
+          esac
+        fi
+        ;;
+    esac
+    break
+  fi
+  [ "$cursor" = "/" ] && break
+  cursor=${cursor%/*}
+  [ -n "$cursor" ] || cursor=/
+done
+
+# The non-Git working directory is always a boundary. Every ancestor carrying
+# a .git marker is also a boundary, which covers nested Claude worktrees kept
+# below their main checkout.
+is_inside_workspace() {
+  candidate_path=$1
+  if [ -n "$linked_root" ]; then
+    case "$candidate_path" in
+      "$linked_root"|"$linked_root"/*) return 0 ;;
+    esac
+  fi
+  boundary=$working_dir
+  case "$candidate_path" in
+    "$boundary"|"$boundary"/*) return 0 ;;
+  esac
+
+  cursor=$working_dir
+  while :; do
+    if [ -e "$cursor/.git" ] || [ -L "$cursor/.git" ]; then
+      case "$candidate_path" in
+        "$cursor"|"$cursor"/*) return 0 ;;
+      esac
+    fi
+    [ "$cursor" = "/" ] && break
+    cursor=${cursor%/*}
+    [ -n "$cursor" ] || cursor=/
+  done
+  return 1
+}
+
+if [ -x /usr/bin/readlink ]; then
+  readlink_bin=/usr/bin/readlink
+elif [ -x /bin/readlink ]; then
+  readlink_bin=/bin/readlink
+else
+  readlink_bin=
+fi
+
+resolve_node_candidate() {
+  resolved_node=$1
+  hops=0
+  while [ -L "$resolved_node" ]; do
+    [ -n "$readlink_bin" ] || return 1
+    hops=$((hops + 1))
+    [ "$hops" -le 40 ] || return 1
+    link_target=$($readlink_bin "$resolved_node") || return 1
+    case "$link_target" in
+      /*) resolved_node=$link_target ;;
+      *) resolved_node=${resolved_node%/*}/$link_target ;;
+    esac
+    target_dir=${resolved_node%/*}
+    target_name=${resolved_node##*/}
+    target_dir=$(CDPATH= cd -P "$target_dir" 2>/dev/null && pwd -P) || return 1
+    resolved_node=$target_dir/$target_name
+  done
+  [ -f "$resolved_node" ] && [ -x "$resolved_node" ]
+}
+
+old_ifs=$IFS
+IFS=:
+for path_entry in ${PATH-}; do
+  IFS=$old_ifs
+  case "$path_entry" in
+    /*) ;;
+    *) IFS=:; continue ;;
+  esac
+  physical_entry=$(CDPATH= cd -P "$path_entry" 2>/dev/null && pwd -P) || {
+    IFS=:
+    continue
+  }
+  if resolve_node_candidate "$physical_entry/node" && \
+     ! is_inside_workspace "$resolved_node"; then
+    IFS=$old_ifs
+    exec "$resolved_node" "$launcher_dir/cc-for-codex.mjs" "$@"
+    fail "trusted Node executable could not be started"
+  fi
+  IFS=:
+done
+IFS=$old_ifs
+
+fail "no executable named node was found outside the current repository/workspace; install Node.js 20+ or use a trusted absolute Node directory in PATH"
