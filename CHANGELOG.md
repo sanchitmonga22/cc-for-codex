@@ -2,6 +2,11 @@
 
 All notable changes follow semantic versioning.
 
+## 0.2.0 - 2026-09-04
+
+- Added a copy-paste Codex installation and end-to-end verification prompt at the top of the README.
+- Added `$claude-verify` to distinguish loaded, installed, locally ready, and live-proven plugin state.
+
 ## 0.1.0 - 2026-09-03
 
 - Initial Git/local Codex marketplace package.

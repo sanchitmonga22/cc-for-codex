@@ -1,0 +1,4 @@
+interface:
+  display_name: "Claude Verify"
+  short_description: "Verify the installed Claude bridge"
+  default_prompt: "Use $claude-verify to verify CC for Codex and run a safe readiness check."

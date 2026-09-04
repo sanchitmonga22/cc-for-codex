@@ -23,4 +23,4 @@ For the optional Codex Stop review hook:
 - Enable only after the user explicitly accepts that every eligible Codex Stop can invoke billed Claude usage. Then run `review-gate enable --confirm-review-gate enable-billed-stop-review`.
 - Explain that the gate is disabled by default and stored in the Git common directory, so linked worktrees share it.
 - Remind the user that Codex separately skips plugin hooks until they inspect and trust the current hook definition through `/hooks`; changed definitions need review again.
-- Explain that v0.1 reviews the full current dirty Git tree, can block on older changes, blocks on partial evidence, performs only one review per Stop cycle, and fails open with a visible warning on runtime errors.
+- Explain that v0.2 reviews the full current dirty Git tree, can block on older changes, blocks on partial evidence, performs only one review per Stop cycle, and fails open with a visible warning on runtime errors.

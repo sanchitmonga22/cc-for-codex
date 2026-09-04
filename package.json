@@ -1,6 +1,6 @@
 {
   "name": "cc-for-codex",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "A Codex plugin that orchestrates a locally installed Claude Code CLI with explicit trust gates.",
   "type": "module",

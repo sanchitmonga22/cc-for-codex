@@ -6,7 +6,7 @@
 - Node.js 20 or newer
 - Claude Code 2.1.259 or newer, installed locally and authenticated through a Claude subscription, Anthropic API, or a supported provider. Capability-equivalent later builds must expose `--safe-mode`, `--restricted`, `--dangerously-skip-permissions`, `--strict-mcp-config`, `--no-chrome`, `--permission-mode`, `--permission-prompts`, `--tools`, and `--output-format`.
 - Git for review and isolated write workflows
-- macOS or standard Linux. WSL2 is a supported target but has not yet been independently qualified. V0.1 does not include a native Windows launcher or `commandWindows` hook and does not support native Windows.
+- macOS or standard Linux. WSL2 is a supported target but has not yet been independently qualified. V0.2 does not include a native Windows launcher or `commandWindows` hook and does not support native Windows.
 
 Any repository you review or delegate into must be a self-contained clone. Repositories created with `git clone --shared`, `--reference`, or another nonempty Git alternate object store are intentionally refused because their commits and blobs can come from outside the selected checkout.
 

@@ -19,8 +19,9 @@ The target is workflow parity with OpenAI's official reverse-direction [`codex-p
 
 ## Claude-specific surface
 
-| Workflow | Plugin surface | Underlying command | v0.1 status | Limits / risk |
+| Workflow | Plugin surface | Underlying command | v0.2 status | Limits / risk |
 |---|---|---|---|---|
+| Installed/local/live verification | `$claude-verify` | `codex plugin list --json`, `doctor --json`, optional guarded `ask` | Core + optional live proof | Local checks make no model call; live proof needs explicit Anthropic-usage authorization |
 | Ask Claude | `$claude-code` | `claude -p --output-format json` | Core | Read-only profile; optional persistence |
 | Structured quick review | `$claude-review` | `claude -p --json-schema ...` | Core | Local model usage; tools disabled; bridge owns and inlines the Git scope/schema |
 | Stop-time review gate | `review-gate` + bundled hook | One guarded structured review on Codex Stop | Opt-in partial | Per-Git-common-dir state; partial evidence blocks; runtime failures fail open; cannot attribute changes to one turn |

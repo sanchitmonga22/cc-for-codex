@@ -1,6 +1,6 @@
 {
   "name": "cc-for-codex",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Run guarded Claude Code reviews, delegation, and session workflows from Codex.",
   "author": {
     "name": "Sanchit Monga",
@@ -26,7 +26,8 @@
     "capabilities": [
       "Code review",
       "Task delegation",
-      "Session management"
+      "Session management",
+      "Installation verification"
     ],
     "defaultPrompt": [
       "Use Claude Code to review my current changes.",

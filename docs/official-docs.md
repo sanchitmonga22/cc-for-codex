@@ -86,4 +86,4 @@ The [Claude Code documentation index](https://code.claude.com/docs/llms.txt) is 
 
 ## Agent SDK
 
-The [Agent SDK overview](https://code.claude.com/docs/en/agent-sdk/overview) and [quickstart](https://code.claude.com/docs/en/agent-sdk/quickstart) are the likely phase-two transport if the project needs permission callbacks, structured streaming, and nested-agent event fidelity. V0.1 avoids adding that dependency until those capabilities are required.
+The [Agent SDK overview](https://code.claude.com/docs/en/agent-sdk/overview) and [quickstart](https://code.claude.com/docs/en/agent-sdk/quickstart) are the likely phase-two transport if the project needs permission callbacks, structured streaming, and nested-agent event fidelity. V0.2 avoids adding that dependency until those capabilities are required.

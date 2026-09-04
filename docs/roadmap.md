@@ -14,21 +14,25 @@
 - Fake-Claude security and lifecycle tests
 - Bounded Stop review gate with trust, billing, partial-evidence, fail-open, and loop controls
 
-## v0.2 — lifecycle hardening
+## v0.2 — installation and verification
+
+- Copy-paste Codex installer prompt and `$claude-verify` installed/local/live verification workflow
+
+## v0.3 — lifecycle hardening
 
 - Structured background event/result store if Anthropic exposes a stable interface
 - Ambiguous-launch recovery and richer blocked-state rendering
 - Windows process-tree and path test matrix
 - Supported-version compatibility table from CI-installed Claude builds
 
-## v0.3 — Agent SDK adapter
+## v0.4 — Agent SDK adapter
 
 - Optional TypeScript Agent SDK transport for streaming events
 - Permission callback relay with explicit Codex/user decisions
 - Nested subagent event rendering
 - Stronger cancellation and usage telemetry
 
-## v0.4 — handoff and review integrations
+## v0.5 — handoff and review integrations
 
 - Portable, sanitized handoff artifact schema
 - Optional PR annotations only through a separate explicit external-write workflow

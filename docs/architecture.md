@@ -2,14 +2,14 @@
 
 ## Decision
 
-CC for Codex is a Codex plugin with five skills, one optional Stop hook, and a shared local process runner. This deliberately combines the components the project needs:
+CC for Codex is a Codex plugin with six skills, one optional Stop hook, and a shared local process runner. This deliberately combines the components the project needs:
 
 - The **plugin** is the versioned, installable marketplace package.
 - The **skills** are the discoverable workflows Codex invokes.
 - The **runner** turns those model-authored workflows into validated Claude CLI argument arrays.
 - The **hook** optionally runs the same guarded review at Codex Stop after separate trust and billing opt-ins.
 
-No MCP server is required in v0.1. A local MCP server would add lifecycle and protocol complexity without removing the local Claude CLI/auth dependency. Anthropic's `claude mcp serve` exposes Claude Code tools to an MCP client; it is not a supported “Claude as a model” endpoint.
+No MCP server is required in v0.2. A local MCP server would add lifecycle and protocol complexity without removing the local Claude CLI/auth dependency. Anthropic's `claude mcp serve` exposes Claude Code tools to an MCP client; it is not a supported “Claude as a model” endpoint.
 
 ## Repository shape
 
@@ -19,7 +19,7 @@ plugins/cc-for-codex/
   .codex-plugin/plugin.json             Codex package manifest
   hooks/hooks.json                      Auto-discovered optional Stop hook
   hooks/stop-review-gate                Hook launcher
-  skills/                               Five focused Codex skills
+  skills/                               Six focused Codex skills
   scripts/cc-for-codex                  Safe executable launcher
   LICENSE
 scripts/                                Repository validation/audit tools
@@ -85,4 +85,4 @@ See [threat-model.md](threat-model.md) for the enforced controls.
 
 ## Future richer transport
 
-A custom MCP server or the Claude Agent SDK becomes justified if the project needs structured streaming, permission callbacks, reliable nested-agent events, or cross-platform background result storage. That would be a separate architecture version—not a reason to hide a local subprocess behind an unnecessary v0.1 server.
+A custom MCP server or the Claude Agent SDK becomes justified if the project needs structured streaming, permission callbacks, reliable nested-agent events, or cross-platform background result storage. That would be a separate architecture version—not a reason to hide a local subprocess behind an unnecessary v0.2 server.

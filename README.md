@@ -13,6 +13,27 @@
 
 Ask Claude Code for a second opinion without leaving Codex. Run structured reviews, challenge an implementation adversarially, delegate work into an isolated worktree, and manage Claude background sessions from the Codex macOS app or CLI.
 
+## Copy this into Codex
+
+Paste this entire prompt into a Codex task in the macOS app or CLI. It installs the plugin, verifies the installed package and local Claude Code readiness, and performs one explicitly authorized read-only smoke test:
+
+```text
+Install and verify CC for Codex from https://github.com/sanchitmonga22/cc-for-codex.
+
+Do not modify any project code, Claude settings, credentials, unrelated Codex settings, or unrelated plugins. The only Codex configuration changes authorized here are adding/upgrading this marketplace and installing/reinstalling this exact plugin. Use the local terminal only for this installation and verification.
+
+1. Run `codex --version` and confirm the Codex CLI is available.
+2. Inspect `codex plugin marketplace list --json`. If the `cc-for-codex` Git marketplace is not configured, run `codex plugin marketplace add sanchitmonga22/cc-for-codex --ref main`. If it is already configured, run `codex plugin marketplace upgrade cc-for-codex --json` instead.
+3. Inspect `codex plugin list --json`. If `cc-for-codex@cc-for-codex` is absent, run `codex plugin add cc-for-codex@cc-for-codex --json`. If it is installed below version 0.2.0, run `codex plugin remove cc-for-codex@cc-for-codex --json` and then reinstall it with the preceding `plugin add` command. Do not remove it when the installed version is already 0.2.0 or newer.
+4. Inspect `codex plugin list --json` again. Require the exact plugin ID `cc-for-codex@cc-for-codex`, with `installed: true`, `enabled: true`, and version 0.2.0 or newer. Use only that entry's reported `source.path`; do not guess or search for a cache directory.
+5. From that verified source path, run `scripts/cc-for-codex doctor --json`. Confirm that Claude Code is installed, authenticated, and reports the required guarded capabilities. Do not print email addresses, tokens, organization IDs, settings, environment variables, or unrelated plugin details.
+6. I authorize exactly one minimal Claude model request for a live read-only smoke test, which may count against my Anthropic plan or API billing. Run the verified source path's runner with: `ask --model haiku --max-turns 1 --text-only --prompt "Reply with exactly: CC for Codex is connected."` Do not enable native mode, MCP, Chrome, shell tools, edits, background execution, or dangerous permissions.
+7. Require a successful exit and the exact response `CC for Codex is connected.`. Report each check separately as installed, locally ready, and live-proven. If any step fails, stop and show the exact failing command and a redacted error; do not weaken safeguards or silently install other software.
+8. Remind me to start a new Codex task so the newly installed skills load. In that new task, the reusable check is: `Use $claude-verify to verify CC for Codex.`
+```
+
+The final live check consumes one small Claude request. Delete step 6 and treat step 7 as skipped if you want installation and local diagnostics only.
+
 This is the reciprocal companion to OpenAI's official [Codex plugin for Claude Code](https://github.com/openai/codex-plugin-cc): that project brings Codex into Claude Code; this project brings a user-installed Claude Code CLI into Codex.
 
 > [!IMPORTANT]
@@ -20,7 +41,7 @@ This is the reciprocal companion to OpenAI's official [Codex plugin for Claude C
 
 ## Install in under a minute
 
-Prerequisites: a current [Codex CLI / Codex app](https://developers.openai.com/codex/) and an installed, authenticated [Claude Code CLI](https://code.claude.com/docs/en/quickstart) version 2.1.259 or newer (or a later build exposing the required safety capabilities). V0.1 is tested on macOS and standard Linux. WSL2 is a supported target but has not yet been independently qualified; native Windows is not supported.
+Prerequisites: a current [Codex CLI / Codex app](https://developers.openai.com/codex/) and an installed, authenticated [Claude Code CLI](https://code.claude.com/docs/en/quickstart) version 2.1.259 or newer (or a later build exposing the required safety capabilities). V0.2 is tested on macOS and standard Linux. WSL2 is a supported target but has not yet been independently qualified; native Windows is not supported.
 
 ```bash
 codex plugin marketplace add sanchitmonga22/cc-for-codex --ref main
@@ -59,6 +80,7 @@ Foreground `-p --worktree` delegation skips Claude's workspace-trust prompt. Bef
 | `$claude-delegate` | “Delegate this fix to Claude in an isolated worktree.” | Foreground/background investigation; dangerous zero-prompt edits by default, with a guarded option |
 | `$claude-sessions` | “Show my Claude jobs and the latest logs.” | Repo-scoped status, logs, stop, respawn, remove, and attach |
 | `$claude-setup` | “Check whether Claude Code is ready.” | Binary, version, auth, and feature diagnostics with redaction |
+| `$claude-verify` | “Verify CC for Codex and run a live smoke test.” | Installed/enabled state, package integrity, local readiness, and optional live proof |
 
 The plugin also ships one deterministic, dependency-free Node runner and an optional Stop hook. Familiar aliases match the reverse OpenAI plugin:
 
@@ -122,7 +144,7 @@ RUNNER="plugins/cc-for-codex/scripts/cc-for-codex"
 
 Enablement is stored in the repository's Git common directory, so linked worktrees share it. Installation and enablement do not trust executable hooks: review the current definition and trust its exact hash in Codex `/hooks`; changed hook definitions require review again. Findings or partial evidence block one continuation, while `stop_hook_active` prevents a second review in that Stop cycle. Timeout, auth, schema, CLI, or preflight failures fail open with a visible warning; disabled, clean, and loop-guard paths emit no output.
 
-Unlike the official reverse plugin's previous-turn gate, v0.1 cannot reliably attribute dirty files to a single Codex turn from the Stop payload. It reviews the complete current dirty Git tree on each enabled Stop and can therefore block on older or pre-existing changes.
+Unlike the official reverse plugin's previous-turn gate, v0.2 cannot reliably attribute dirty files to a single Codex turn from the Stop payload. It reviews the complete current dirty Git tree on each enabled Stop and can therefore block on older or pre-existing changes.
 
 ## Architecture
 

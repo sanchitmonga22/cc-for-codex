@@ -44,7 +44,7 @@ const skillsRoot = resolve(pluginRoot, "skills");
 const skillDirectories = readdirSync(skillsRoot)
   .map((name) => ({ name, path: resolve(skillsRoot, name) }))
   .filter((entry) => statSync(entry.path).isDirectory());
-expect(skillDirectories.length >= 5, "expected the five focused Claude skills");
+expect(skillDirectories.length >= 6, "expected the six focused Claude skills");
 
 for (const skill of skillDirectories) {
   const skillMd = readRequired(resolve(skill.path, "SKILL.md"));
@@ -74,6 +74,7 @@ const readme = readRequired(resolve(root, "README.md"));
 expect(readme.includes("https://learn.chatgpt.com/docs/build-plugins"), "README must link OpenAI plugin docs");
 expect(readme.includes("https://code.claude.com/docs/en/cli-reference"), "README must link Claude CLI docs");
 expect(readme.includes("unofficial"), "README must include the non-affiliation disclaimer");
+expect(readme.includes("Use $claude-verify to verify CC for Codex."), "README must include the copy-paste verification handoff");
 
 if (failures.length) {
   process.stderr.write(`Validation failed (${failures.length}):\n${failures.map((failure) => `- ${failure}`).join("\n")}\n`);
