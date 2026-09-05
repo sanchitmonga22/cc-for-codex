@@ -3,6 +3,10 @@
 </p>
 
 <p align="center">
+  <img src="docs/assets/cc-for-codex-plugin-store.png" alt="CC for Codex plugin store view showing review, second-opinion, and background-session prompts" width="430" />
+</p>
+
+<p align="center">
   <a href="https://github.com/sanchitmonga22/cc-for-codex/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/sanchitmonga22/cc-for-codex/ci.yml?branch=main&style=flat-square"></a>
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-22c55e?style=flat-square"></a>
   <img alt="Node 20+" src="https://img.shields.io/badge/node-%3E%3D20-339933?style=flat-square&logo=nodedotjs&logoColor=white">
@@ -12,6 +16,19 @@
 # CC for Codex
 
 Ask Claude Code for a second opinion without leaving Codex. Run structured reviews, challenge an implementation adversarially, delegate work into an isolated worktree, and manage Claude background sessions from the Codex macOS app or CLI.
+
+> Created with GPT-6 Astra in Codex.
+
+## See the workflow in action
+
+This short walkthrough shows the complete path: install CC for Codex, verify the local Claude Code connection, and invoke Claude from a Codex task. The plugin-store view above shows how the six skills and their starter prompts are presented.
+
+<video controls muted playsinline preload="metadata" width="100%">
+  <source src="docs/assets/cc-for-codex-workflow.mp4" type="video/mp4" />
+  Your browser does not support embedded video. [Download the workflow demo](docs/assets/cc-for-codex-workflow.mp4).
+</video>
+
+[Download the 55-second workflow demo](docs/assets/cc-for-codex-workflow.mp4) · `docs/assets/cc-for-codex-workflow.mp4`
 
 ## Copy this into Codex
 

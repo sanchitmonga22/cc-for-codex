@@ -1,28 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
   <title id="title">CC for Codex</title>
-  <desc id="desc">Two code brackets joined by a safe local bridge.</desc>
+  <desc id="desc">Two code brackets joined by a luminous local bridge.</desc>
   <defs>
-    <linearGradient id="background" x1="48" y1="36" x2="464" y2="476" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#111827"/>
-      <stop offset="0.55" stop-color="#1F2937"/>
-      <stop offset="1" stop-color="#431407"/>
-    </linearGradient>
-    <linearGradient id="bridge" x1="100" y1="256" x2="412" y2="256" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#38BDF8"/>
-      <stop offset="0.48" stop-color="#F59E0B"/>
-      <stop offset="1" stop-color="#FB7185"/>
-    </linearGradient>
-    <filter id="shadow" x="-25%" y="-25%" width="150%" height="150%">
-      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#000000" flood-opacity="0.36"/>
-    </filter>
+    <linearGradient id="bg" x1="36" y1="24" x2="478" y2="490" gradientUnits="userSpaceOnUse"><stop stop-color="#080A14"/><stop offset=".54" stop-color="#12152A"/><stop offset="1" stop-color="#24152C"/></linearGradient>
+    <linearGradient id="accent" x1="92" y1="256" x2="420" y2="256" gradientUnits="userSpaceOnUse"><stop stop-color="#62B5FF"/><stop offset=".5" stop-color="#9D8BFF"/><stop offset="1" stop-color="#FF8EA6"/></linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(100 58) rotate(45) scale(390 340)"><stop stop-color="#4D8DFF" stop-opacity=".32"/><stop offset="1" stop-color="#4D8DFF" stop-opacity="0"/></radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000" flood-opacity=".48"/></filter>
+    <filter id="softGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="8" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   </defs>
-  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#background)"/>
-  <circle cx="430" cy="78" r="126" fill="#F97316" opacity="0.10"/>
-  <circle cx="54" cy="466" r="136" fill="#38BDF8" opacity="0.08"/>
+  <rect x="16" y="16" width="480" height="480" rx="116" fill="url(#bg)"/>
+  <rect x="16" y="16" width="480" height="480" rx="116" fill="url(#glow)"/>
+  <circle cx="432" cy="76" r="126" fill="#C18CFF" opacity=".08"/>
+  <g fill="#D9E7FF" opacity=".65"><circle cx="82" cy="92" r="2"/><circle cx="420" cy="414" r="2"/><circle cx="394" cy="104" r="1.5"/></g>
   <g filter="url(#shadow)" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M188 142 82 256l106 114" stroke="#93C5FD" stroke-width="42"/>
-    <path d="m324 142 106 114-106 114" stroke="#FDBA74" stroke-width="42"/>
-    <path d="M171 256h170" stroke="url(#bridge)" stroke-width="34"/>
-    <circle cx="256" cy="256" r="38" fill="#111827" stroke="#FBBF24" stroke-width="18"/>
+    <path d="M190 142 78 256l112 114" stroke="#72B9FF" stroke-width="43"/>
+    <path d="m322 142 112 114-112 114" stroke="#FF9BB0" stroke-width="43"/>
+    <path d="M174 256h164" stroke="url(#accent)" stroke-width="34" filter="url(#softGlow)"/>
+    <rect x="224" y="224" width="64" height="64" rx="17" transform="rotate(45 256 256)" fill="#111326" stroke="#D7C7FF" stroke-width="9"/>
+    <path d="M256 231v50M231 256h50" stroke="#F5E9FF" stroke-width="7"/>
   </g>
 </svg>
