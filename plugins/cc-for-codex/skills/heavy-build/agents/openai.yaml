@@ -1,0 +1,4 @@
+interface:
+  display_name: "Heavy Build"
+  short_description: "Implement and verify an approved plan"
+  default_prompt: "Use $heavy-build to implement the approved plan, run real validation and E2E checks, obtain the finished-diff Claude review, triage findings, and report verified results."

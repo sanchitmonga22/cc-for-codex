@@ -19,6 +19,14 @@ import {
   ultrareview,
 } from "./lib/bridge.mjs";
 import {
+  installGlobalWorkflow,
+  renderWorkflow,
+} from "../../../scripts/install-global-workflow.mjs";
+import {
+  renderUninstallWorkflow,
+  uninstallGlobalWorkflow,
+} from "../../../scripts/uninstall-global-workflow.mjs";
+import {
   BRIDGE_VERSION,
   BridgeError,
   parseBoundedInteger,
@@ -36,6 +44,8 @@ Usage:
 
 Core commands:
   setup, doctor                 Check binary, version, auth, and capabilities
+  workflow install              Preview or append the Codex-first global instruction blocks
+  workflow uninstall            Preview or remove only CC for Codex's marked global blocks
   review-gate                   Status/enable/disable the opt-in Stop review hook
   ask                           Ask Claude for a read-only second opinion
   review                        Review the current diff with a strict schema
@@ -98,6 +108,8 @@ async function main(argv = process.argv.slice(2)) {
       return await runDoctor(rest);
     case "review-gate":
       return await runReviewGate(rest);
+    case "workflow":
+      return await runWorkflow(rest);
     case "hook-stop-review":
       return await runStopReviewHook(rest);
     case "ask":
@@ -188,6 +200,52 @@ async function runReviewGate(args) {
     `Repository: ${terminalLine(value.root)}`,
     ...(value.note ? [terminalLine(value.note)] : []),
   ].join("\n"));
+}
+
+async function runWorkflow(args) {
+  const { values, positionals } = parseArgs({
+    args,
+    strict: true,
+    allowPositionals: true,
+    options: {
+      apply: { type: "boolean" },
+      check: { type: "boolean" },
+      "allow-conflicts": { type: "boolean" },
+      "claude-file": { type: "string" },
+      "codex-file": { type: "string" },
+      json: { type: "boolean" },
+      help: { type: "boolean", short: "h" },
+    },
+  });
+  if (values.help) {
+    return printCommandHelp(
+      "workflow <install|uninstall> [--check|--apply] [--allow-conflicts] [--claude-file path] [--codex-file path]\n" +
+      "  Install appends, or uninstall removes only, the marked Codex-first role blocks.\n" +
+      "  Dry-run is the default; --apply is the explicit mutation request.",
+    );
+  }
+  if (positionals.length !== 1 || !["install", "uninstall"].includes(positionals[0])) {
+    throw new BridgeError("workflow accepts exactly one action: install or uninstall.");
+  }
+  if (values.apply && values.check) throw new BridgeError("choose either --check or --apply, not both");
+  if (values["allow-conflicts"] && positionals[0] !== "install") {
+    throw new BridgeError("--allow-conflicts is only valid for workflow install.");
+  }
+  if (values["allow-conflicts"] && !values.apply) {
+    throw new BridgeError("--allow-conflicts requires --apply");
+  }
+  const common = {
+    apply: values.apply === true,
+    claudeFile: values["claude-file"],
+    codexFile: values["codex-file"],
+  };
+  const result = positionals[0] === "install"
+    ? installGlobalWorkflow({
+        ...common,
+        allowConflicts: values["allow-conflicts"] === true,
+      })
+    : uninstallGlobalWorkflow(common);
+  printResult(result, values.json, positionals[0] === "install" ? renderWorkflow : renderUninstallWorkflow);
 }
 
 async function runStopReviewHook(args) {

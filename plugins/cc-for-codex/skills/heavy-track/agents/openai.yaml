@@ -1,0 +1,4 @@
+interface:
+  display_name: "Heavy Track"
+  short_description: "Run the complete Codex-first workflow"
+  default_prompt: "Use $heavy-track for a risky or multi-file change with concurrent exploration, a challenged plan, one approval gate, validation, and the finished-diff Claude review."

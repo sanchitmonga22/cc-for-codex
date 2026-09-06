@@ -2,8 +2,8 @@
 
 ## v0.1 — local production foundation
 
-- Git/local Codex marketplace with five skills and an opt-in Stop hook
-- Five focused skills and one shared dependency-free runner
+- Git/local Codex marketplace with six Claude integration skills, three Codex-first workflow skills, and an opt-in Stop hook
+- Nine focused skills and one shared dependency-free runner
 - Doctor/auth redaction
 - Safe ask, structured review, and adversarial review
 - Explicit ultrareview with forced `--no-post`
@@ -17,6 +17,8 @@
 ## v0.2 — installation and verification
 
 - Copy-paste Codex installer prompt and `$claude-verify` installed/local/live verification workflow
+- Required Codex-first global workflow setup with a dry-run/apply installer, backups, and a marker-scoped uninstaller
+- Light/heavy workflow documentation with explicit default model routing and evidence boundaries
 
 ## v0.3 — lifecycle hardening
 

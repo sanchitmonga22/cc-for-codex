@@ -17,7 +17,7 @@
     "audit:docs": "node scripts/audit-official-docs.mjs",
     "check": "npm run check:offline && npm run audit:docs",
     "check:offline": "npm run lint && npm test && npm run validate",
-    "lint": "node --check plugins/cc-for-codex/skills/claude-code/scripts/cc-for-codex.mjs && node --check plugins/cc-for-codex/skills/claude-code/scripts/lib/bridge.mjs && node --check plugins/cc-for-codex/skills/claude-code/scripts/lib/runtime.mjs && node --check scripts/audit-claude-cli.mjs && node --check scripts/audit-official-docs.mjs && node --check scripts/validate.mjs && node --check tests/fixtures/fake-claude.mjs",
+    "lint": "node --check plugins/cc-for-codex/scripts/install-global-workflow.mjs && node --check plugins/cc-for-codex/scripts/uninstall-global-workflow.mjs && node --check plugins/cc-for-codex/skills/claude-code/scripts/cc-for-codex.mjs && node --check plugins/cc-for-codex/skills/claude-code/scripts/lib/bridge.mjs && node --check plugins/cc-for-codex/skills/claude-code/scripts/lib/runtime.mjs && node --check scripts/audit-claude-cli.mjs && node --check scripts/audit-official-docs.mjs && node --check scripts/validate.mjs && node --check tests/fixtures/fake-claude.mjs",
     "test": "node --test tests/*.test.mjs",
     "validate": "node scripts/validate.mjs"
   },

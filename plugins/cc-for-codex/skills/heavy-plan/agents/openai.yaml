@@ -1,0 +1,4 @@
+interface:
+  display_name: "Heavy Plan"
+  short_description: "Plan risky Codex work with evidence"
+  default_prompt: "Use $heavy-plan to explore concurrently, write the evidence-backed plan, challenge it with Claude, triage findings, and stop at the approval gate before editing."

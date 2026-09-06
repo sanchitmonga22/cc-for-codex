@@ -2,6 +2,12 @@
 
 All notable changes follow semantic versioning.
 
+## Unreleased
+
+- Add `$heavy-track`, `$heavy-plan`, and `$heavy-build` for a Codex-first heavy workflow.
+- Document the Codex-first role split and the light/heavy workflow with explicit model-routing defaults.
+- Add the required `workflow install` command and a reversible `workflow uninstall` command with portable global instruction templates, backups, and idempotent checks.
+
 ## 0.2.2 - 2026-09-05
 
 - Adopt the approved charcoal, copper, and ivory logo across the README and plugin surfaces.

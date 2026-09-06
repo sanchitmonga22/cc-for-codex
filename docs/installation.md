@@ -126,6 +126,27 @@ The setting lives in the Git common directory and is shared by linked worktrees.
 
 ## Remove
 
+The required global workflow setup can be reversed without deleting either
+instruction file. The command removes only the exact CC for Codex blocks
+between the managed markers, preserves all surrounding prose, refuses symlink
+and partial-marker targets, and creates a timestamped backup before changing an
+existing file:
+
+```bash
+node plugins/cc-for-codex/scripts/uninstall-global-workflow.mjs --check
+node plugins/cc-for-codex/scripts/uninstall-global-workflow.mjs --apply
+```
+
+Use the source checkout's runner when the plugin is loaded:
+
+```bash
+plugins/cc-for-codex/scripts/cc-for-codex workflow uninstall --check
+plugins/cc-for-codex/scripts/cc-for-codex workflow uninstall --apply
+```
+
+These commands do not uninstall Claude Code, remove saved Claude sessions, or
+disable per-repository review-gate state.
+
 The optional review-gate setting belongs to each Git repository, not the plugin installation, and deliberately survives upgrades or reinstalls. Before removal, visit every repository where you enabled it and ask: “Use `$claude-setup` to disable the Stop review gate.” From a source checkout, the equivalent command is `plugins/cc-for-codex/scripts/cc-for-codex review-gate disable`. If you leave that state enabled, reinstalling and re-trusting the same hook can resume billed Stop reviews without another enable command; the state file is `<git-common-dir>/cc-for-codex/review-gate.json`.
 
 ```bash

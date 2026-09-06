@@ -2,7 +2,7 @@
 
 ## Decision
 
-CC for Codex is a Codex plugin with six skills, one optional Stop hook, and a shared local process runner. This deliberately combines the components the project needs:
+CC for Codex is a Codex plugin with nine skills, one optional Stop hook, and a shared local process runner. Six skills integrate with Claude Code; three (`heavy-track`, `heavy-plan`, and `heavy-build`) provide the Codex-first workflow. This deliberately combines the components the project needs:
 
 - The **plugin** is the versioned, installable marketplace package.
 - The **skills** are the discoverable workflows Codex invokes.
@@ -19,8 +19,10 @@ plugins/cc-for-codex/
   .codex-plugin/plugin.json             Codex package manifest
   hooks/hooks.json                      Auto-discovered optional Stop hook
   hooks/stop-review-gate                Hook launcher
-  skills/                               Six focused Codex skills
+  skills/                               Six Claude integration + three Codex workflow skills
   scripts/cc-for-codex                  Safe executable launcher
+  scripts/install-global-workflow.mjs   Required, idempotent global instruction setup
+  scripts/uninstall-global-workflow.mjs Reversible removal of only managed blocks
   LICENSE
 scripts/                                Repository validation/audit tools
 tests/                                  Fake-Claude integration tests

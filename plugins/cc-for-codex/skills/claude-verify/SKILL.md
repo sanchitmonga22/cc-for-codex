@@ -13,7 +13,7 @@ Report installation, local readiness, and live execution as separate claims. A l
 2. The fact that this skill is loaded proves that the current Codex task discovered this plugin. Do not claim that another app window or existing task dynamically loaded it.
 3. Run `codex --version`. If the binary is unavailable, report that the current task loaded the skill but CLI verification is unavailable; do not install or change PATH unless separately requested.
 4. Run `codex plugin list --json` and inspect only the exact `cc-for-codex@cc-for-codex` entry. Require `installed: true` and `enabled: true`. Codex may report the marketplace snapshot in `source.path` while loading skills from its versioned plugin cache, so do not require those paths to be identical. Do not print unrelated plugin entries.
-5. Verify that the plugin root derived from this loaded skill contains `.codex-plugin/plugin.json`, all six expected skill entrypoints, and `scripts/cc-for-codex`. Require the loaded manifest's name and version to match the exact installed entry, then invoke that absolute runner path with `doctor --json`.
+5. Verify that the plugin root derived from this loaded skill contains `.codex-plugin/plugin.json`, all nine expected skill entrypoints, and `scripts/cc-for-codex`. Require the loaded manifest's name and version to match the exact installed entry, then invoke that absolute runner path with `doctor --json`.
 6. Treat `doctor` as a local, non-model check. Report its allowlisted version, authentication, and capability fields without exposing email, organization IDs, tokens, settings, environment variables, or project paths.
 
 Expected skill entrypoints:
@@ -25,6 +25,9 @@ claude-review/SKILL.md
 claude-sessions/SKILL.md
 claude-setup/SKILL.md
 claude-verify/SKILL.md
+heavy-track/SKILL.md
+heavy-plan/SKILL.md
+heavy-build/SKILL.md
 ```
 
 ## Optional live proof
@@ -47,7 +50,7 @@ Return a compact checklist with distinct statuses:
 
 - **Loaded in this task:** whether this skill is active.
 - **Installed and enabled:** exact plugin ID and version from Codex.
-- **Package complete:** runner, manifest, and six skill entrypoints found under the verified source path.
+- **Package complete:** runner, manifest, and nine skill entrypoints found under the verified source path.
 - **Claude locally ready:** `doctor --json` result.
 - **Live smoke test:** passed, failed, or skipped because it was not authorized.
 

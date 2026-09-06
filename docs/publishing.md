@@ -2,7 +2,7 @@
 
 ## Supported today
 
-This repository is a valid Git/local Codex marketplace: `.agents/plugins/marketplace.json` points to the five-skill package with an auto-discovered optional Stop hook under `plugins/cc-for-codex`. Anyone with the repository URL can add that marketplace and install the plugin.
+This repository is a valid Git/local Codex marketplace: `.agents/plugins/marketplace.json` points to the nine-skill package with an auto-discovered optional Stop hook under `plugins/cc-for-codex`. Anyone with the repository URL can add that marketplace and install the plugin.
 
 That open-source distribution path is distinct from OpenAI's universal public plugin directory.
 
@@ -35,6 +35,6 @@ CC for Codex intentionally depends on a separately installed/authenticated third
 - written provider authorization and naming/branding review;
 - OpenAI eligibility clarification for local-only third-party CLI dependencies;
 - public support, privacy, and terms pages;
-- at least five positive and three negative trigger tests;
+- at least five positive and three negative trigger tests covering the nine skills;
 - supported-surface declaration that makes the local Codex dependency explicit;
 - clean-environment review and a privacy/data-flow assessment.

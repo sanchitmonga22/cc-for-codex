@@ -44,7 +44,7 @@ const skillsRoot = resolve(pluginRoot, "skills");
 const skillDirectories = readdirSync(skillsRoot)
   .map((name) => ({ name, path: resolve(skillsRoot, name) }))
   .filter((entry) => statSync(entry.path).isDirectory());
-expect(skillDirectories.length >= 6, "expected the six focused Claude skills");
+expect(skillDirectories.length >= 9, "expected six Claude integration skills and three Codex workflow skills");
 
 for (const skill of skillDirectories) {
   const skillMd = readRequired(resolve(skill.path, "SKILL.md"));
@@ -65,6 +65,10 @@ for (const relativePath of [
   "docs/official-docs.md",
   "plugins/cc-for-codex/hooks/hooks.json",
   "plugins/cc-for-codex/hooks/stop-review-gate",
+  "plugins/cc-for-codex/scripts/install-global-workflow.mjs",
+  "plugins/cc-for-codex/scripts/uninstall-global-workflow.mjs",
+  "plugins/cc-for-codex/references/global/CLAUDE.md",
+  "plugins/cc-for-codex/references/global/AGENTS.md",
   "plugins/cc-for-codex/skills/claude-code/scripts/cc-for-codex.mjs",
 ]) {
   readRequired(resolve(root, relativePath));

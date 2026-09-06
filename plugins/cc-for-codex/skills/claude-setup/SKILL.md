@@ -7,6 +7,12 @@ description: "Check whether the local Claude Code CLI is installed, authenticate
 
 Use the executable bridge launcher at the sibling skill path `../claude-code/scripts/cc-for-codex`, resolved to an absolute path. Invoke it directly, never through a bare `node` lookup.
 
+Global workflow setup is a separate, explicit local operation. From a source
+checkout, preview/apply it with `node plugins/cc-for-codex/scripts/install-global-workflow.mjs --check|--apply`;
+to reverse only the marked blocks, use the matching
+`uninstall-global-workflow.mjs` command. The plugin manager does not run these
+filesystem mutations automatically.
+
 Run `doctor --json` first. It is read-only, makes no model request, and reports only an allowlist of auth fields. It deliberately withholds email, organization identifiers, project directories, tokens, settings, and environment variables.
 
 Use `doctor --full` only when the basic report is insufficient; Anthropic documents `claude doctor` as a local health check.

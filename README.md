@@ -1,8 +1,4 @@
 <p align="center">
-  <img src="plugins/cc-for-codex/assets/icon.png" alt="CC for Codex" width="160" />
-</p>
-
-<p align="center">
   <img src="docs/assets/banner.png" alt="CC for Codex — Claude Code and Codex connected for reviews, delegation, and verification" width="100%" />
 </p>
 
@@ -15,7 +11,7 @@
 
 # CC for Codex
 
-Ask Claude Code for a second opinion without leaving Codex. Run structured reviews, challenge an implementation adversarially, delegate work into an isolated worktree, and manage Claude background sessions from the Codex macOS app or CLI.
+Use Codex as the primary engineer and bring in your local Claude Code CLI only when a second opinion, adversarial challenge, or isolated delegation is useful. CC for Codex also provides a full heavy-track workflow for planning, implementation, validation, and review from the Codex macOS app or CLI.
 
 > Created with GPT-6 Astra in Codex.
 
@@ -30,7 +26,7 @@ https://github.com/user-attachments/assets/bdba3033-1279-4283-a587-0cc50fa43b2f
 [Download the original recording](docs/assets/cc-for-codex-workflow.mp4)
 
 <details>
-<summary>See CC for Codex in the plugin browser — all six skills and starter prompts</summary>
+<summary>See CC for Codex in the plugin browser — six Claude integration skills and starter prompts</summary>
 
 <p align="center">
   <a href="docs/assets/cc-for-codex-plugin-store.png"><img src="docs/assets/cc-for-codex-plugin-store.png" alt="User-provided plugin browser screenshot showing the six CC for Codex skills and optional hook; captured before the branding refresh" width="800" /></a>
@@ -45,19 +41,20 @@ Paste this entire prompt into a Codex task in the macOS app or CLI. It installs 
 ```text
 Install and verify CC for Codex from https://github.com/sanchitmonga22/cc-for-codex.
 
-Do not modify any project code, Claude settings, credentials, unrelated Codex settings, or unrelated plugins. The only Codex configuration changes authorized here are adding/upgrading this marketplace and installing/reinstalling this exact plugin. Use the local terminal only for this installation and verification.
+Do not modify project code, credentials, unrelated settings, or unrelated plugins. The only configuration changes authorized here are adding/upgrading this marketplace, installing this exact plugin, and appending CC for Codex's marked Codex-first blocks to the two global instruction files after their dry run passes. Use the local terminal only for this installation and verification.
 
 1. Run `codex --version` and confirm the Codex CLI is available.
-2. Inspect `codex plugin marketplace list --json`. If the `cc-for-codex` Git marketplace is not configured, run `codex plugin marketplace add sanchitmonga22/cc-for-codex --ref main`. If it is already configured, run `codex plugin marketplace upgrade cc-for-codex --json` instead.
-3. Inspect `codex plugin list --json`. If `cc-for-codex@cc-for-codex` is absent, run `codex plugin add cc-for-codex@cc-for-codex --json`. If it is installed below version 0.2.0, run `codex plugin remove cc-for-codex@cc-for-codex --json` and then reinstall it with the preceding `plugin add` command. Do not remove it when the installed version is already 0.2.0 or newer.
-4. Inspect `codex plugin list --json` again. Require the exact plugin ID `cc-for-codex@cc-for-codex`, with `installed: true`, `enabled: true`, and version 0.2.0 or newer. Use only that entry's reported `source.path`; do not guess or search for a cache directory.
-5. From that verified source path, run `scripts/cc-for-codex doctor --json`. Confirm that Claude Code is installed, authenticated, and reports the required guarded capabilities. Do not print email addresses, tokens, organization IDs, settings, environment variables, or unrelated plugin details.
-6. I authorize exactly one minimal Claude model request for a live read-only smoke test, which may count against my Anthropic plan or API billing. Run the verified source path's runner with: `ask --model haiku --max-turns 1 --text-only --prompt "Reply with exactly: CC for Codex is connected."` Do not enable native mode, MCP, Chrome, shell tools, edits, background execution, or dangerous permissions.
-7. Require a successful exit and the exact response `CC for Codex is connected.`. Report each check separately as installed, locally ready, and live-proven. If any step fails, stop and show the exact failing command and a redacted error; do not weaken safeguards or silently install other software.
-8. Remind me to start a new Codex task so the newly installed skills load. In that new task, the reusable check is: `Use $claude-verify to verify CC for Codex.`
+2. Inspect `codex plugin marketplace list --json`. Locate the entry named `cc-for-codex` and require its `marketplaceSource.source` to be `https://github.com/sanchitmonga22/cc-for-codex.git` (the same URL without `.git` is also equivalent). If it is absent, run `codex plugin marketplace add sanchitmonga22/cc-for-codex --ref main --json`. If the name exists with any other source, stop and ask me before changing it. If the source matches, run `codex plugin marketplace upgrade cc-for-codex --json`.
+3. Inspect `codex plugin list --json`. If `cc-for-codex@cc-for-codex` is absent, run `codex plugin add cc-for-codex@cc-for-codex --json`. If it is installed below semver `0.2.0`, run `codex plugin remove cc-for-codex@cc-for-codex --json` and then reinstall it with the preceding `plugin add` command. Do not remove it when the installed version is already `0.2.0` or newer.
+4. Inspect `codex plugin list --json` again. Require the exact plugin ID `cc-for-codex@cc-for-codex`, with `installed: true`, `enabled: true`, and version `0.2.0` or newer. Use only that entry's reported `source.path`; do not guess or search for a cache directory. Change directory to that exact path before the next steps.
+5. From that verified source path, run `node scripts/install-global-workflow.mjs --check`, report the absolute targets, then run it with `--apply`. This required step may append only the marked blocks to global `CLAUDE.md` and `AGENTS.md`; if legacy role text is reported, stop and ask before using `--allow-conflicts`.
+6. Run `scripts/cc-for-codex doctor --json`. Confirm that Claude Code is installed, authenticated, and reports the required guarded capabilities. Do not print email addresses, tokens, organization IDs, settings, environment variables, or unrelated plugin details.
+7. I authorize exactly one minimal Claude model request for a live read-only smoke test, which may count against my Anthropic plan or API billing. Run the verified source path's runner with: `ask --model haiku --max-turns 1 --text-only --prompt "Reply with exactly: CC for Codex is connected."` Do not enable native mode, MCP, Chrome, shell tools, edits, background execution, or dangerous permissions.
+8. Require a successful exit and the exact response `CC for Codex is connected.`. Report each check separately as installed, locally configured, locally ready, and live-proven. If any step fails, stop and show the exact failing command and a redacted error; do not weaken safeguards or silently install other software.
+9. Remind me to start a new Codex task so the newly installed skills load. In that new task, the reusable check is: `Use $claude-verify to verify CC for Codex.`
 ```
 
-The final live check consumes one small Claude request. Delete step 6 and treat step 7 as skipped if you want installation and local diagnostics only.
+The final live check consumes one small Claude request. Skip step 7 if you want installation and local diagnostics only; step 6 is the local readiness check.
 
 This is the reciprocal companion to OpenAI's official [Codex plugin for Claude Code](https://github.com/openai/codex-plugin-cc): that project brings Codex into Claude Code; this project brings a user-installed Claude Code CLI into Codex.
 
@@ -94,6 +91,22 @@ codex plugin add cc-for-codex@cc-for-codex
 
 See [installation and updates](docs/installation.md) for removal, upgrades, PATH troubleshooting, and direct runner usage.
 
+## Required: configure the Codex-first workflow
+
+From this checkout, complete plugin setup with these three lines:
+
+```bash
+node plugins/cc-for-codex/scripts/install-global-workflow.mjs --check
+node plugins/cc-for-codex/scripts/install-global-workflow.mjs --apply
+# If legacy role text is reported, review it and rerun --apply --allow-conflicts.
+```
+
+This appends the portable [Claude](plugins/cc-for-codex/references/global/CLAUDE.md)
+and [Codex](plugins/cc-for-codex/references/global/AGENTS.md) blocks to the
+absolute global instruction paths. The installer is idempotent, backs up
+existing files, and refuses symlink targets. The plugin manager does not run
+arbitrary setup scripts during install, so this explicit step is required.
+
 Foreground `-p --worktree` delegation skips Claude's workspace-trust prompt. Before a background/non-`-p` worktree delegation, open `claude` interactively in that repository and accept its trust prompt yourself. For dangerous background writes, you must also accept Claude's one-time bypass-responsibility dialog in an interactive non-root Claude session first.
 
 ## What you get
@@ -106,6 +119,102 @@ Foreground `-p --worktree` delegation skips Claude's workspace-trust prompt. Bef
 | `$claude-sessions` | “Show my Claude jobs and the latest logs.” | Repo-scoped status, logs, stop, respawn, remove, and attach |
 | `$claude-setup` | “Check whether Claude Code is ready.” | Binary, version, auth, and feature diagnostics with redaction |
 | `$claude-verify` | “Verify CC for Codex and run a live smoke test.” | Installed/enabled state, package integrity, local readiness, and optional live proof |
+
+### Codex-first workflow skills
+
+The plugin also includes a Codex-first workflow for substantial work. Codex remains
+the primary planner, implementer, and validator; Claude Code is called only for
+an explicitly requested or approved second opinion.
+
+| Skill | Use it when | Result |
+|---|---|---|
+| `$heavy-track` | A change is risky, architectural, multi-file, or multi-session | Routes through concurrent exploration, a challenged plan, one gate, implementation, validation, and two Claude rounds |
+| `$heavy-plan` | You need the evidence-backed plan before editing | Records the base, alternatives, acceptance criteria, risks, validation, and the first-round Claude challenge |
+| `$heavy-build` | The plan is approved or autonomous mode is explicitly granted | Implements in scope, proves the result, runs the second-round Claude review, triages findings, and reports verified status |
+
+For the full procedure, start with `$heavy-track`. It does not grant permission
+to change global settings, commit, push, merge, publish, or delete worktrees.
+
+## Default workflow and model routing
+
+The three workflow skills encode the operating policy below. The model names are
+the configured defaults for this workflow, not a promise that every Codex or
+Claude host exposes the same IDs. If a default is unavailable, report the
+runtime's actual availability and ask before substituting; never claim a model
+was used unless the runtime confirms it.
+
+### Light track — implement directly, no ceremony
+
+Use this for a bounded change where a plan, fan-out, branch ritual, and gate
+would add more overhead than confidence.
+
+| Step | Action | Default model |
+|---|---|---|
+| 1 | Edit in the main Codex session | GPT 5.6 Sol — high |
+| 2 | Run the project's real validation command | GPT 5.6 Terra — high |
+| 3 | Paste the real output; no completion claim without it | GPT 5.6 Terra — high |
+| Optional | One Claude Code call only when something feels risky | Opus 5 |
+
+There is no plan file, fan-out, branch ritual, or approval gate on the light
+track. The optional Claude call remains read-only unless a separate write task
+is explicitly authorized.
+
+### Heavy track — two skills around one stop
+
+`$heavy-track` dispatches `$heavy-plan`, stops at one explicit gate, and then
+dispatches `$heavy-build` only after **go** (or when autonomous mode was
+explicitly granted). Resolve `BASE` first; never assume `main`. Choose an entry
+mode: `fresh`, `resume`, or `autonomous`.
+
+#### `$heavy-plan` — no production code is written
+
+1. **EXPLORE:** fan out all agents in one message, concurrently. Give each
+   agent one narrow question. The defaults are Codex `gpt-5.6-luna` — xhigh for
+   architecture, invariants, and failure modes, plus Sonnet 5 Explore/analyzer
+   for locations, call sites, and conventions. Five questions means five
+   shallow, scoped answers—not one unfocused sweep.
+2. **PLAN:** GPT-6 Astra — high writes `~/.claude/plans/<name>.md` with the goal,
+   resolved `BASE`, approach, why alternatives lost, files, validation, risks,
+   and out-of-scope boundaries.
+3. **CHALLENGE:** Claude Code attacks the plan—not the implementation—as
+   cross-model round 1 of 2. Default: Opus 5 or Fable 5.1.
+4. **TRIAGE:** GPT-6 Astra classifies each point as `ACCEPT`, `INVESTIGATE`, or
+   `REJECT`, with evidence. Codex confidence is not evidence.
+
+**⛔ Gate — stop.** Before go, there is no branch, edit, “prepping files,”
+commit, or push. Return the plan path, a concise plan, the triage table,
+out-of-scope items, validation commands, and `go / change / drop`. In
+autonomous mode, record that decision in the plan file and continue without
+stopping for the chat response.
+
+#### `$heavy-build` — only after go
+
+5. **BRANCH:** create a branch off the resolved `BASE` before the first edit;
+   never commit to `BASE`. Default: GPT 5.6 Sol — high.
+6. **IMPLEMENT:** stay within the plan and record deviations as they happen.
+   Default: GPT 5.6 Sol — high.
+7. **VALIDATE:** run the real command, paste the real output, and rerun until
+   green. Default: GPT 5.6 Sol — high.
+8. **E2E:** exercise the running system where the acceptance criteria require
+   it; unit tests wearing an E2E costume do not count.
+9. **REVIEW:** Claude Code reviews with `--base "$BASE"` as cross-model round 2
+   of 2. Default: Opus 5 or Fable 5.1, selected by complexity.
+10. **FIX:** triage findings, fix accepted issues, and rerun validation. An
+    unverified fix is an unfixed issue. Default: GPT 5.6 Sol — high.
+11. **REPORT:** GPT-6 Astra — high writes
+    `~/.claude/plans/<name>-report.md` with implemented, validated, E2E-proven,
+    reviewed, committed, merged, and deployed status separated.
+
+Human review and merge remain explicit decisions. Neither skill silently
+commits, pushes, merges, publishes, or deletes a worktree.
+
+The global workflow installer is reversible. To remove only the managed blocks
+later, preview first and then apply explicitly:
+
+```bash
+node plugins/cc-for-codex/scripts/uninstall-global-workflow.mjs --check
+node plugins/cc-for-codex/scripts/uninstall-global-workflow.mjs --apply
+```
 
 The plugin also ships one deterministic, dependency-free Node runner and an optional Stop hook. Familiar aliases match the reverse OpenAI plugin:
 

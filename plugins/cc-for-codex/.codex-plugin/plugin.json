@@ -1,7 +1,7 @@
 {
   "name": "cc-for-codex",
   "version": "0.2.2",
-  "description": "Run guarded Claude Code reviews, delegation, and session workflows from Codex.",
+  "description": "Run a Codex-first engineering workflow with optional guarded Claude Code reviews, delegation, and session workflows.",
   "author": {
     "name": "Sanchit Monga",
     "url": "https://github.com/sanchitmonga22"
@@ -14,20 +14,24 @@
     "codex",
     "code-review",
     "delegation",
-    "second-opinion"
+    "second-opinion",
+    "planning",
+    "implementation-workflow"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "CC for Codex",
     "shortDescription": "Use local Claude Code workflows from Codex.",
-    "longDescription": "Ask Claude Code for a second opinion, run read-only and adversarial reviews, delegate isolated work, and manage background Claude sessions from Codex.",
+    "longDescription": "Plan, implement, validate, and review substantial work from Codex, then optionally ask local Claude Code for an independent challenge or isolated delegation.",
     "developerName": "Sanchit Monga",
     "category": "Productivity",
     "capabilities": [
       "Code review",
       "Task delegation",
       "Session management",
-      "Installation verification"
+      "Installation verification",
+      "Codex-first heavy workflow",
+      "Opt-in global workflow setup"
     ],
     "defaultPrompt": [
       "Use Claude Code to review my current changes.",
