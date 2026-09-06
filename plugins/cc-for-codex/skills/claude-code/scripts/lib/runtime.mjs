@@ -14,7 +14,7 @@ import {
 import { delimiter, isAbsolute, relative, resolve, sep } from "node:path";
 import { spawn } from "node:child_process";
 
-export const BRIDGE_VERSION = "0.2.1";
+export const BRIDGE_VERSION = "0.2.2";
 export const DEFAULT_OUTPUT_LIMIT = 10 * 1024 * 1024;
 export const DEFAULT_PROMPT_LIMIT = 1024 * 1024;
 

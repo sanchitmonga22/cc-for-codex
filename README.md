@@ -1,12 +1,16 @@
 <p align="center">
+  <img src="plugins/cc-for-codex/assets/icon.png" alt="CC for Codex" width="160" />
+</p>
+
+<p align="center">
   <img src="docs/assets/banner.png" alt="CC for Codex — Claude Code and Codex connected for reviews, delegation, and verification" width="100%" />
 </p>
 
 <p align="center">
   <a href="https://github.com/sanchitmonga22/cc-for-codex/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/sanchitmonga22/cc-for-codex/ci.yml?branch=main&style=flat-square"></a>
-  <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-22c55e?style=flat-square"></a>
-  <img alt="Node 20+" src="https://img.shields.io/badge/node-%3E%3D20-339933?style=flat-square&logo=nodedotjs&logoColor=white">
-  <img alt="Codex skills and hook plugin" src="https://img.shields.io/badge/Codex-skills%20%2B%20opt--in%20hook-111827?style=flat-square">
+  <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-D86A35?style=flat-square"></a>
+  <img alt="Node 20+" src="https://img.shields.io/badge/node-%3E%3D20-292524?style=flat-square&logo=nodedotjs&logoColor=white">
+  <img alt="Codex skills and hook plugin" src="https://img.shields.io/badge/Codex-skills%20%2B%20opt--in%20hook-292524?style=flat-square">
 </p>
 
 # CC for Codex
@@ -14,6 +18,8 @@
 Ask Claude Code for a second opinion without leaving Codex. Run structured reviews, challenge an implementation adversarially, delegate work into an isolated worktree, and manage Claude background sessions from the Codex macOS app or CLI.
 
 > Created with GPT-6 Astra in Codex.
+
+[Logo and brand assets](docs/branding.md)
 
 ## See the workflow in action
 

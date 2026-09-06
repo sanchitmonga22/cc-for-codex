@@ -1,6 +1,6 @@
 {
   "name": "cc-for-codex",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Run guarded Claude Code reviews, delegation, and session workflows from Codex.",
   "author": {
     "name": "Sanchit Monga",
@@ -34,7 +34,7 @@
       "Ask Claude Code for a second opinion on this design.",
       "Show my Claude Code background sessions."
     ],
-    "brandColor": "#7C6BFF",
+    "brandColor": "#D86A35",
     "composerIcon": "./assets/icon.png",
     "logo": "./assets/logo.png"
   }

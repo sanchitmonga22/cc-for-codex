@@ -1,3 +1,11 @@
+<p align="center">
+  <img src="assets/icon.png" alt="CC for Codex — copper Claude mark connected to an ivory Codex terminal" width="160" />
+</p>
+
+<p align="center">
+  <img src="assets/logo.png" alt="CC for Codex — Claude Code, inside Codex" width="100%" />
+</p>
+
 # CC for Codex plugin package
 
 This directory is the installable Codex plugin. For installation, architecture, security, official sources, and the complete feature matrix, see the repository [README](https://github.com/sanchitmonga22/cc-for-codex#readme).

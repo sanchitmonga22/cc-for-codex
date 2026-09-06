@@ -2,6 +2,12 @@
 
 All notable changes follow semantic versioning.
 
+## 0.2.2 - 2026-09-05
+
+- Adopt the approved charcoal, copper, and ivory logo across the README and plugin surfaces.
+- Match the wide plugin logo to the banner and remove obsolete blue/purple SVG artwork.
+- Document canonical brand assets and preserve their original proportions.
+
 ## 0.2.1 - 2026-09-05
 
 - Install process signal forwarding before launching subprocesses to close the early-cancellation race exposed by Node 20 CI.
