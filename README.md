@@ -1,9 +1,5 @@
 <p align="center">
-  <img src="docs/assets/banner.svg" alt="CC for Codex — Claude Code workflows inside Codex" width="100%" />
-</p>
-
-<p align="center">
-  <img src="docs/assets/cc-for-codex-plugin-store.png" alt="CC for Codex plugin store view showing review, second-opinion, and background-session prompts" width="430" />
+  <img src="docs/assets/banner.png" alt="CC for Codex — Claude Code and Codex connected for reviews, delegation, and verification" width="100%" />
 </p>
 
 <p align="center">
@@ -21,14 +17,20 @@ Ask Claude Code for a second opinion without leaving Codex. Run structured revie
 
 ## See the workflow in action
 
-This short walkthrough shows the complete path: install CC for Codex, verify the local Claude Code connection, and invoke Claude from a Codex task. The plugin-store view above shows how the six skills and their starter prompts are presented.
+Watch the 55-second workflow demo recorded in Codex:
 
-<video controls muted playsinline preload="metadata" width="100%">
-  <source src="docs/assets/cc-for-codex-workflow.mp4" type="video/mp4" />
-  Your browser does not support embedded video. [Download the workflow demo](docs/assets/cc-for-codex-workflow.mp4).
-</video>
+https://github.com/user-attachments/assets/bdba3033-1279-4283-a587-0cc50fa43b2f
 
-[Download the 55-second workflow demo](docs/assets/cc-for-codex-workflow.mp4) · `docs/assets/cc-for-codex-workflow.mp4`
+[Download the original recording](docs/assets/cc-for-codex-workflow.mp4)
+
+<details>
+<summary>See CC for Codex in the plugin browser — all six skills and starter prompts</summary>
+
+<p align="center">
+  <a href="docs/assets/cc-for-codex-plugin-store.png"><img src="docs/assets/cc-for-codex-plugin-store.png" alt="User-provided plugin browser screenshot showing the six CC for Codex skills and optional hook; captured before the branding refresh" width="800" /></a>
+</p>
+
+</details>
 
 ## Copy this into Codex
 

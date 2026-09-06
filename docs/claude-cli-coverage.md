@@ -28,6 +28,7 @@ Native transport is finite-command argv/stdin passthrough, not universal protoco
 | `--allowedTools`, `--allowed-tools` | Bridge-owned / Native + mutation/dangerous confirmation | Guarded write mode pre-approves only `Edit,Write`; native permission authorization can bypass host prompts |
 | `--append-system-prompt` | Native | Guarded commands own their system contract |
 | `--append-subagent-system-prompt` | Native | Changes every nested subagent prompt; guarded mode has no subagents |
+| `--append-subagent-system-prompt-file` | Native | Since Claude Code 2.1.261; loads a host file into subagent prompts in print mode, mutually exclusive with the inline variant; guarded mode has no subagents |
 | `--append-system-prompt-file` | Native | Loads host file content into the system prompt |
 | `--autocompact` | Native | Session tuning, not needed for one-shot workflow |
 | `--ax-screen-reader` | Native / Direct | Interactive presentation option |

@@ -2,6 +2,12 @@
 
 All notable changes follow semantic versioning.
 
+## 0.2.1 - 2026-09-05
+
+- Install process signal forwarding before launching subprocesses to close the early-cancellation race exposed by Node 20 CI.
+- Document the new Claude CLI subagent prompt-file flag in the compatibility ledger.
+- Replace the README hero, improve the screenshot layout, and use a GitHub-hosted video attachment for native playback.
+
 ## 0.2.0 - 2026-09-04
 
 - Added a copy-paste Codex installation and end-to-end verification prompt at the top of the README.

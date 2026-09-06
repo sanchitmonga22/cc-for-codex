@@ -14,7 +14,7 @@ import {
 import { delimiter, isAbsolute, relative, resolve, sep } from "node:path";
 import { spawn } from "node:child_process";
 
-export const BRIDGE_VERSION = "0.2.0";
+export const BRIDGE_VERSION = "0.2.1";
 export const DEFAULT_OUTPUT_LIMIT = 10 * 1024 * 1024;
 export const DEFAULT_PROMPT_LIMIT = 1024 * 1024;
 
@@ -462,13 +462,7 @@ export async function runProcess(command, args, options = {}) {
       if (value === undefined) delete childEnvironment[key];
     }
 
-    const child = spawn(command, args, {
-      cwd,
-      detached,
-      shell: false,
-      stdio: ["pipe", "pipe", "pipe"],
-      env: childEnvironment,
-    });
+    let child;
 
     const terminate = (reason, signal = "SIGTERM") => {
       if (reason === "timeout") timedOut = true;
@@ -494,6 +488,22 @@ export async function runProcess(command, args, options = {}) {
     const onSigterm = () => forwardSignal("SIGTERM");
     process.on("SIGINT", onSigint);
     process.on("SIGTERM", onSigterm);
+
+    // Install signal forwarding before spawning: a fast child can publish its
+    // readiness before spawn returns, letting cancellation hit an unhandled
+    // SIGTERM window on a busy host.
+    try {
+      child = spawn(command, args, {
+        cwd,
+        detached,
+        shell: false,
+        stdio: ["pipe", "pipe", "pipe"],
+        env: childEnvironment,
+      });
+    } catch (error) {
+      finishWithError(error);
+      return;
+    }
 
     const collect = (chunks, chunk, stream) => {
       const bytes = Buffer.byteLength(chunk);
