@@ -6,6 +6,10 @@ This is the complete English-page inventory exposed by the official index at the
 
 The official index also links 11 translated indexes; they mirror the English feature inventory and are not duplicated here. Run `npm run audit:docs` to compare this file and the CLI ledger with the current official sources.
 
+The live index added six entries after the 2026-09-03 snapshot; they are
+recorded below so the audit remains explicit even when a page is temporarily
+unavailable from the documentation host.
+
 | # | Official page | Disposition |
 |---:|---|---|
 | 1 | [Overview](https://code.claude.com/docs/en/overview.md) | Core design input |
@@ -199,3 +203,9 @@ The official index also links 11 translated indexes; they mirror the English fea
 | 189 | [Week 14 · March 30 – April 3, 2026](https://code.claude.com/docs/en/whats-new/2026-w14.md) | Reference/history |
 | 190 | [Week 13 · March 23–27, 2026](https://code.claude.com/docs/en/whats-new/2026-w13.md) | Reference/history |
 | 191 | [Legal and compliance](https://code.claude.com/docs/en/legal-and-compliance.md) | Reference/history |
+| 192 | [Agent SDK configuration](https://code.claude.com/docs/en/agent-sdk/configuration.md) | Deferred: Agent SDK transport |
+| 193 | [Claude projects](https://code.claude.com/docs/en/claude-projects.md) | Native/direct mapping |
+| 194 | [Plugin evaluations](https://code.claude.com/docs/en/plugin-evals.md) | Native/direct mapping |
+| 195 | [Week 35](https://code.claude.com/docs/en/whats-new/2026-w35.md) | Reference/history |
+| 196 | [Week 36](https://code.claude.com/docs/en/whats-new/2026-w36.md) | Reference/history |
+| 197 | [Week 37](https://code.claude.com/docs/en/whats-new/2026-w37.md) | Reference/history |

@@ -34,6 +34,14 @@ The [Claude Code documentation index](https://code.claude.com/docs/llms.txt) is 
 | [Ultrareview](https://code.claude.com/docs/en/ultrareview) | Cloud upload, consent, pricing/credits, timeouts, and `--no-post` |
 | [Costs](https://code.claude.com/docs/en/costs) | Usage disclosure and foreground limits |
 
+## Claude model defaults
+
+| Source | Routing decision |
+|---|---|
+| [Models overview](https://platform.claude.com/docs/en/models/overview) | Opus 5.5 is the default for most bridge calls; Fable 5.1 is reserved for explicitly requested demanding long-horizon work; Sonnet 5 remains the faster alternative |
+| [Claude Opus 5.5 migration guide](https://platform.claude.com/docs/en/models/opus-5-5/migration-guide) | Canonical API model ID is `claude-opus-5-5`; the bridge uses this ID when `--model` is omitted |
+| [Claude Fable 5.1](https://platform.claude.com/docs/en/models/fable-5-1/overview) | Canonical model ID is `claude-fable-5-1`; explicit opt-in alternative |
+
 ## Claude Code: permissions and trust
 
 | Source | Bridge decision |

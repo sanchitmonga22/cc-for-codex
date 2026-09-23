@@ -13,13 +13,14 @@ heavy cross-model workflow is selected and the usage is approved.
 
 ## Default model routing
 
-- Explore concurrently in one message: Codex `gpt-5.6-luna` at `xhigh` for
-  architecture, invariants, and failure modes; Sonnet 5 Explore/analyzer for
-  locations, call sites, and conventions.
-- Plan: GPT-6 Astra at `high`.
-- Challenge: Opus 5 or Fable 5.1, read-only and aimed at the plan rather than
-  production code.
-- Triage: GPT-6 Astra at `high`; confidence is not evidence.
+- Explore concurrently in one message: GPT-6 Luna at `max` (or `high` when
+  latency matters) for architecture, invariants, and failure modes; Sonnet 5
+  (`claude-sonnet-5`) for locations, call sites, and conventions.
+- Plan: GPT-6 Sol at `high`.
+- Challenge: Claude Opus 5.5 (`claude-opus-5-5`), read-only and aimed at the
+  plan rather than production code. Fable 5.1 (`claude-fable-5-1`) is an
+  explicit long-horizon alternative; Sonnet 5 remains the fast alternative.
+- Triage: GPT-6 Sol at `high`; confidence is not evidence.
 
 ## Establish the starting state
 

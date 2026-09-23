@@ -150,10 +150,10 @@ would add more overhead than confidence.
 
 | Step | Action | Default model |
 |---|---|---|
-| 1 | Edit in the main Codex session | GPT 5.6 Sol — high |
-| 2 | Run the project's real validation command | GPT 5.6 Terra — high |
-| 3 | Paste the real output; no completion claim without it | GPT 5.6 Terra — high |
-| Optional | One Claude Code call only when something feels risky | Opus 5 |
+| 1 | Edit in the main Codex session | GPT-6 Sol — high |
+| 2 | Run the project's real validation command | GPT-6 Sol — high |
+| 3 | Paste the real output; no completion claim without it | GPT-6 Sol — high |
+| Optional | One Claude Code call only when something feels risky | Claude Opus 5.5 (`claude-opus-5-5`) |
 
 There is no plan file, fan-out, branch ritual, or approval gate on the light
 track. The optional Claude call remains read-only unless a separate write task
@@ -169,16 +169,18 @@ mode: `fresh`, `resume`, or `autonomous`.
 #### `$heavy-plan` — no production code is written
 
 1. **EXPLORE:** fan out all agents in one message, concurrently. Give each
-   agent one narrow question. The defaults are Codex `gpt-5.6-luna` — xhigh for
-   architecture, invariants, and failure modes, plus Sonnet 5 Explore/analyzer
-   for locations, call sites, and conventions. Five questions means five
-   shallow, scoped answers—not one unfocused sweep.
-2. **PLAN:** GPT-6 Astra — high writes `~/.claude/plans/<name>.md` with the goal,
+   agent one narrow question. The defaults are Codex GPT-6 Luna — `max` for
+   architecture, invariants, and failure modes (use `high` when latency matters),
+   plus Sonnet 5 (`claude-sonnet-5`) for locations, call sites, and conventions.
+   Five questions means five shallow, scoped answers—not one unfocused sweep.
+2. **PLAN:** GPT-6 Sol — high writes `~/.claude/plans/<name>.md` with the goal,
    resolved `BASE`, approach, why alternatives lost, files, validation, risks,
    and out-of-scope boundaries.
 3. **CHALLENGE:** Claude Code attacks the plan—not the implementation—as
-   cross-model round 1 of 2. Default: Opus 5 or Fable 5.1.
-4. **TRIAGE:** GPT-6 Astra classifies each point as `ACCEPT`, `INVESTIGATE`, or
+   cross-model round 1 of 2. Default: Claude Opus 5.5 (`claude-opus-5-5`).
+   Use Fable 5.1 (`claude-fable-5-1`) only when the user explicitly wants a
+   longer, highest-capability challenge; Sonnet 5 remains the fast alternative.
+4. **TRIAGE:** GPT-6 Sol classifies each point as `ACCEPT`, `INVESTIGATE`, or
    `REJECT`, with evidence. Codex confidence is not evidence.
 
 **⛔ Gate — stop.** Before go, there is no branch, edit, “prepping files,”
@@ -190,18 +192,19 @@ stopping for the chat response.
 #### `$heavy-build` — only after go
 
 5. **BRANCH:** create a branch off the resolved `BASE` before the first edit;
-   never commit to `BASE`. Default: GPT 5.6 Sol — high.
+   never commit to `BASE`. Default: GPT-6 Sol — high.
 6. **IMPLEMENT:** stay within the plan and record deviations as they happen.
-   Default: GPT 5.6 Sol — high.
+   Default: GPT-6 Sol — high.
 7. **VALIDATE:** run the real command, paste the real output, and rerun until
-   green. Default: GPT 5.6 Sol — high.
+   green. Default: GPT-6 Sol — high.
 8. **E2E:** exercise the running system where the acceptance criteria require
    it; unit tests wearing an E2E costume do not count.
 9. **REVIEW:** Claude Code reviews with `--base "$BASE"` as cross-model round 2
-   of 2. Default: Opus 5 or Fable 5.1, selected by complexity.
+   of 2. Default: Claude Opus 5.5 (`claude-opus-5-5`); use Fable 5.1
+   (`claude-fable-5-1`) for an explicitly requested long-horizon review.
 10. **FIX:** triage findings, fix accepted issues, and rerun validation. An
-    unverified fix is an unfixed issue. Default: GPT 5.6 Sol — high.
-11. **REPORT:** GPT-6 Astra — high writes
+    unverified fix is an unfixed issue. Default: GPT-6 Sol — high.
+11. **REPORT:** GPT-6 Sol — high writes
     `~/.claude/plans/<name>-report.md` with implemented, validated, E2E-proven,
     reviewed, committed, merged, and deployed status separated.
 
@@ -308,6 +311,8 @@ RUNNER="plugins/cc-for-codex/scripts/cc-for-codex"
 "$RUNNER" ask --prompt "Explain the tradeoff in this design" --persist
 "$RUNNER" review --base main --focus "auth and rollback"
 "$RUNNER" adversarial-review --path src
+"$RUNNER" import-session \
+  --session 29c90d15-2b3c-4a8d-968c-53db4fa6a3ec
 "$RUNNER" review --background \
   --confirm-background unbounded-usage \
   --confirm-background-data process-visible-prompt
@@ -318,6 +323,14 @@ RUNNER="plugins/cc-for-codex/scripts/cc-for-codex"
   "implement the requested change"
 "$RUNNER" status --all
 ```
+
+`import-session` is the supported Claude-to-Codex bridge for a known Claude
+session UUID. It resumes that Claude session read-only, asks for a structured
+handoff, and prints a Codex-ready prompt that you can paste into a new Codex
+task. The UUID in the example is illustrative. This is not transcript import:
+Codex must inspect the current checkout and verify the handoff. If the Claude
+session is still active, add `--confirm-concurrent-resume may-create-copy`
+after accepting Claude's concurrent-copy behavior.
 
 An ultrareview is intentionally noisy to opt into:
 
@@ -352,6 +365,8 @@ Anthropic / Claude Code:
 - [Ultrareview](https://code.claude.com/docs/en/ultrareview)
 - [MCP](https://code.claude.com/docs/en/mcp)
 - [Claude plugins](https://code.claude.com/docs/en/plugins)
+- [Claude model overview](https://platform.claude.com/docs/en/models/overview)
+- [Claude Opus 5.5 model ID and migration](https://platform.claude.com/docs/en/models/opus-5-5/migration-guide)
 
 The curated [official-docs ledger](docs/official-docs.md) explains the decisions, while the [complete Claude documentation coverage snapshot](docs/claude-docs-coverage.md) gives every English page in the official index an explicit disposition. `npm run audit:docs` checks both the page inventory and CLI surface live.
 

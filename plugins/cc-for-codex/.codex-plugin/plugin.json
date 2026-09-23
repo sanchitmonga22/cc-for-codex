@@ -22,7 +22,7 @@
   "interface": {
     "displayName": "CC for Codex",
     "shortDescription": "Use local Claude Code workflows from Codex.",
-    "longDescription": "Plan, implement, validate, and review substantial work from Codex, then optionally ask local Claude Code for an independent challenge or isolated delegation.",
+    "longDescription": "Plan, implement, validate, and review substantial work from Codex using GPT-6 Sol by default, GPT-6 Luna for heavy exploration, and local Claude Code with Claude Opus 5.5 as the primary second opinion; Sonnet 5 and Fable 5.1 remain explicit alternatives.",
     "developerName": "Sanchit Monga",
     "category": "Productivity",
     "capabilities": [

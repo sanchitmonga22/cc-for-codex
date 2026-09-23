@@ -9,9 +9,16 @@ doctor [--full] [--json]
 ask [--prompt TEXT | --prompt-file FILE] [--persist] [--json]
 resume --session UUID [--prompt TEXT | --prompt-file FILE]
 handoff [--prompt TEXT | --prompt-file FILE]
+import-session --session UUID [context]
 ```
 
-Shared foreground controls are `--model`, `--effort`, `--max-turns`, `--max-budget-usd`, `--fallback-model`, `--timeout-seconds`, and `--cwd`.
+Shared foreground controls are `--model`, `--effort`, `--max-turns`, `--max-budget-usd`, `--fallback-model`, `--timeout-seconds`, and `--cwd`. When `--model` is omitted, the bridge passes `--model claude-opus-5-5`; use `claude-sonnet-5` or `claude-fable-5-1` explicitly when appropriate.
+
+`import-session` resumes an existing Claude session read-only, asks for a
+structured Codex-ready summary, and prints a handoff prompt. It does not copy
+the Claude transcript or create a Codex session. If the Claude session is
+active, add `--confirm-concurrent-resume may-create-copy` only after accepting
+that Claude may create a concurrent copy.
 
 If the target session is already working or blocked, resume refuses by default because Claude may create a concurrent copy. Use `--confirm-concurrent-resume may-create-copy` only after the user chooses that behavior.
 

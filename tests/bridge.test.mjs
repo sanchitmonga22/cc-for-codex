@@ -21,7 +21,10 @@ import {
   isPathInside,
   runProcess,
 } from "../plugins/cc-for-codex/skills/claude-code/scripts/lib/runtime.mjs";
-import { renderAgents } from "../plugins/cc-for-codex/skills/claude-code/scripts/lib/bridge.mjs";
+import {
+  DEFAULT_CLAUDE_MODEL,
+  renderAgents,
+} from "../plugins/cc-for-codex/skills/claude-code/scripts/lib/bridge.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const cli = resolve(root, "plugins/cc-for-codex/skills/claude-code/scripts/cc-for-codex.mjs");
@@ -501,6 +504,26 @@ test("ask sends an injection-shaped prompt on stdin with the exact safe profile"
   assert.ok(modelCall.args.includes("--no-session-persistence"));
   assert.equal(JSON.parse(result.stdout).sessionId, undefined);
   fixture.cleanup();
+});
+
+test("Claude calls default to Opus 5.5 and allow an explicit model override", () => {
+  assert.equal(DEFAULT_CLAUDE_MODEL, "claude-opus-5-5");
+
+  const defaultFixture = makeFixture();
+  const defaultResult = defaultFixture.run(["ask", "hello"]);
+  assert.equal(defaultResult.status, 0, defaultResult.stderr);
+  const defaultCall = defaultFixture.calls().find((call) => call.args.includes("-p"));
+  assert.ok(defaultCall);
+  assert.equal(defaultCall.args[defaultCall.args.indexOf("--model") + 1], DEFAULT_CLAUDE_MODEL);
+  defaultFixture.cleanup();
+
+  const overrideFixture = makeFixture();
+  const overrideResult = overrideFixture.run(["ask", "--model", "claude-sonnet-5", "hello"]);
+  assert.equal(overrideResult.status, 0, overrideResult.stderr);
+  const overrideCall = overrideFixture.calls().find((call) => call.args.includes("-p"));
+  assert.ok(overrideCall);
+  assert.equal(overrideCall.args[overrideCall.args.indexOf("--model") + 1], "claude-sonnet-5");
+  overrideFixture.cleanup();
 });
 
 test("only persisted foreground calls expose a resumable Claude session UUID", () => {
@@ -2509,6 +2532,24 @@ test("rescue supports explicit fresh and UUID resume routing", () => {
   ]);
   assert.notEqual(conflicting.status, 0);
   assert.match(conflicting.stderr, /--fresh or --resume/u);
+  fixture.cleanup();
+});
+
+test("import-session emits a Codex-ready handoff without claiming transcript import", () => {
+  const fixture = makeFixture({ FAKE_CLAUDE_JOB_STATE: "stopped" });
+  const sessionId = "29c90d15-2b3c-4a8d-968c-53db4fa6a3ec";
+  const result = fixture.run(["import-session", "--session", sessionId, "--json"]);
+  assert.equal(result.status, 0, result.stderr);
+  const payload = JSON.parse(result.stdout);
+  assert.equal(payload.kind, "codex-session-import");
+  assert.equal(payload.sourceSessionId, sessionId);
+  assert.equal(payload.transcriptImported, false);
+  assert.match(payload.codexPrompt, /Continue this task from a Claude Code session/u);
+  assert.match(payload.codexPrompt, /fake response/u);
+  const modelCall = fixture.calls().find((entry) => entry.args.includes("--resume"));
+  assert.ok(modelCall);
+  assert.equal(modelCall.args[modelCall.args.indexOf("--resume") + 1], sessionId);
+  assert.equal(modelCall.args[modelCall.args.indexOf("--model") + 1], DEFAULT_CLAUDE_MODEL);
   fixture.cleanup();
 });
 

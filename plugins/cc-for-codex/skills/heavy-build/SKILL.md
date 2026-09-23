@@ -12,9 +12,11 @@ second cross-model round, but it does not share the checkout as a writer.
 
 ## Default model routing
 
-- Branch, implementation, validation, and fixes: GPT 5.6 Sol at `high`.
-- Finished-diff review: Opus 5 or Fable 5.1 with Claude Code.
-- Report: GPT-6 Astra at `high`.
+- Branch, implementation, validation, and fixes: GPT-6 Sol at `high`.
+- Finished-diff review: Claude Opus 5.5 (`claude-opus-5-5`) with Claude Code.
+  Use Fable 5.1 (`claude-fable-5-1`) only when explicitly requested for a
+  long-horizon review; Sonnet 5 (`claude-sonnet-5`) remains the fast option.
+- Report: GPT-6 Sol at `high`.
 
 ## Before the first edit
 

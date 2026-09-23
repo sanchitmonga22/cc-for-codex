@@ -17,13 +17,15 @@ same time.
 These are workflow defaults. Use the host's actual model IDs and report any
 unavailable default before substituting.
 
-- Explore: Codex `gpt-5.6-luna` at `xhigh` for architecture, invariants, and
-  failure modes; Sonnet 5 Explore/analyzer for locations, call sites, and
-  conventions.
-- Plan and triage: GPT-6 Astra at `high`.
-- Branch, implementation, validation, and fixes: GPT 5.6 Sol at `high`.
-- Claude challenge and finished-diff review: Opus 5 or Fable 5.1.
-- Final report: GPT-6 Astra at `high`.
+- Explore: GPT-6 Luna at `max` (or `high` when latency matters) for
+  architecture, invariants, and failure modes; Sonnet 5 (`claude-sonnet-5`)
+  for locations, call sites, and conventions.
+- Plan and triage: GPT-6 Sol at `high`.
+- Branch, implementation, validation, and fixes: GPT-6 Sol at `high`.
+- Claude challenge and finished-diff review: Claude Opus 5.5
+  (`claude-opus-5-5`). Use Fable 5.1 (`claude-fable-5-1`) only when explicitly
+  requested for a long-horizon challenge.
+- Final report: GPT-6 Sol at `high`.
 
 ## Choose the entry mode
 

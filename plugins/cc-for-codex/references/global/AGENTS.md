@@ -19,6 +19,19 @@ The human decides what is committed, merged, published, or deployed.
   autonomous request. It records deviations, validates the real behavior, and
   reports what is still unproven.
 
+## Model routing defaults
+
+- GPT-6 Sol at `high` is the default Codex model for planning, implementation,
+  validation, fixes, and reports.
+- GPT-6 Luna at `max` (or `high` when latency matters) is reserved for
+  parallel heavy-track exploration.
+- Claude Code calls default to Claude Opus 5.5 (`claude-opus-5-5`). Sonnet 5
+  (`claude-sonnet-5`) remains the fast alternative; Fable 5.1
+  (`claude-fable-5-1`) is an explicit long-horizon alternative.
+- Model availability is provider- and host-dependent. Report the actual model
+  and effort used; never claim a configured default ran unless the runtime
+  confirms it.
+
 ## Claude as an opt-in peer
 
 - Use `$claude-code` for a read-only plan challenge only when the user wants a

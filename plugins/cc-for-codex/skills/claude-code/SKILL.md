@@ -25,6 +25,17 @@ Invoke that absolute launcher path directly. It resolves a Node executable outsi
 4. Return Claude's answer as attributed second-opinion output. Do not present it as Codex's own verified conclusion. Independently verify claims before taking consequential action.
 5. If `--persist` was requested, preserve the returned Claude session UUID so a later `resume` can use it.
 
+## Model defaults
+
+- The bridge defaults to Claude Opus 5.5 (`claude-opus-5-5`) for ordinary
+  consultation, handoff, and delegation calls. Pass `--model` to override it.
+- Claude Sonnet 5 (`claude-sonnet-5`) remains the faster explicit alternative.
+- Claude Fable 5.1 (`claude-fable-5-1`) is an explicit long-horizon alternative;
+  use it when the user asks for the highest-capability Claude pass.
+- `$claude-verify` intentionally uses a small smoke-test model when it probes
+  the installation. That cost-saving probe does not change the production
+  default above.
+
 ## Routing
 
 - Use `$claude-review` for normal, adversarial, or ultrareview code review.
@@ -38,6 +49,9 @@ Invoke that absolute launcher path directly. It resolves a Node executable outsi
 - Never call Claude merely because a second opinion might be interesting. The user must ask to use Claude or approve the delegation.
 - Never use `--profile native`, `native`, bypass-permissions flags, Claude plugins, MCP, Chrome, remote control, cloud sessions, or configuration mutations without an exact user request and the matching bridge confirmation. `$claude-delegate` owns the separately confirmed dangerous-write workflow; ordinary read calls never activate it.
 - `handoff` creates a fresh persisted Claude session from a Codex-authored brief. It does not copy hidden Codex context, tool calls, approvals, or the complete transcript.
+- `import-session --session <uuid>` resumes an existing Claude session and asks
+  it for a Codex-ready summary. It is a bounded handoff, not transcript import:
+  Codex must verify the summary in the current checkout.
 - Do not place secrets in prompts, especially background prompts, which can be visible in a local process listing.
 - Do not use native passthrough as a workaround for a rejected guarded command.
 

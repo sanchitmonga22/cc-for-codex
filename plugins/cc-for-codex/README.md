@@ -12,6 +12,12 @@ This directory is the installable Codex plugin. For installation, architecture, 
 
 The package contains nine Codex skills—six Claude integration skills and three Codex-first workflow skills—one dependency-free local runner, and an optional Stop review hook that is disabled per repository until separately trusted and enabled. `$claude-verify` separates installed state, local readiness, and an explicitly authorized live smoke test. The package requires a separately installed and authenticated Claude Code CLI. Reads are restricted and zero-prompt; worktree writes offer a separately confirmed dangerous default plus a zero-prompt guarded alternative. V0.2 is tested on macOS and standard Linux; WSL2 is a target but is not yet independently qualified, and native Windows is not supported. It is unofficial and is not affiliated with Anthropic or OpenAI.
 
+The bridge defaults to Claude Opus 5.5 (`claude-opus-5-5`), while Sonnet 5
+(`claude-sonnet-5`) and Fable 5.1 (`claude-fable-5-1`) remain explicit model
+overrides. `import-session --session <uuid>` creates a Codex-ready handoff
+summary from an existing Claude session; it does not claim to transfer the
+underlying transcript.
+
 The required `workflow install` step appends the Codex-first role blocks to a
 user's global instruction files. It defaults to a dry run, creates
 timestamped backups before appending, refuses symlink targets and known legacy

@@ -9,6 +9,10 @@ Use the executable bridge launcher at the sibling skill path `../claude-code/scr
 
 ## Modes
 
+Ordinary Claude calls default to Claude Opus 5.5 (`claude-opus-5-5`). Pass an
+explicit `--model claude-sonnet-5` for a faster pass or
+`--model claude-fable-5-1` for a user-requested long-horizon pass.
+
 - Foreground read-only: `delegate <prompt>`.
 - Background read-only: after screening the prompt for secrets, disclose that background sessions have no supported max-budget guard and that the full prompt is temporarily visible to same-account local process inspection. After the user accepts both, add `--background --confirm-background unbounded-usage --confirm-background-data process-visible-prompt`.
 - Foreground isolated write: the bridge defaults to `dangerous` zero-prompt permissions. Explain that a worktree is not a host sandbox and Claude file tools may reach host paths when permission checks are bypassed. After explicit authorization of both the edit and that risk, add `--write --confirm-write isolated-worktree --confirm-dangerous-permissions bypass-host-safety`.

@@ -4,6 +4,8 @@ All notable changes follow semantic versioning.
 
 ## Unreleased
 
+- Make Claude Opus 5.5 (`claude-opus-5-5`) the bridge default, while retaining explicit Sonnet 5 and Fable 5.1 overrides.
+- Align Codex-first workflow defaults on GPT-6 Sol at high effort, with GPT-6 Luna at high or max reserved for heavy exploration.
 - Add `$heavy-track`, `$heavy-plan`, and `$heavy-build` for a Codex-first heavy workflow.
 - Document the Codex-first role split and the light/heavy workflow with explicit model-routing defaults.
 - Add the required `workflow install` command and a reversible `workflow uninstall` command with portable global instruction templates, backups, and idempotent checks.

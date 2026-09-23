@@ -6,6 +6,7 @@ import {
   delegate,
   doctor,
   handoff,
+  importSession,
   listAgents,
   nativeClaude,
   renderAgents,
@@ -53,6 +54,7 @@ Core commands:
   ultrareview                   Run Claude's costly cloud review (explicit opt-in)
   delegate, rescue              Delegate read-only or isolated write work
   handoff, transfer             Start a fresh Claude session from a Codex brief
+  import-session                Turn a Claude session UUID into a Codex-ready handoff summary
   resume                        Continue a persisted Claude session by UUID
 
 Background lifecycle:
@@ -116,6 +118,8 @@ async function main(argv = process.argv.slice(2)) {
       return await runAsk(rest);
     case "resume":
       return await runResume(rest);
+    case "import-session":
+      return await runImportSession(rest);
     case "review":
       return await runReview(rest, "standard");
     case "adversarial-review":
@@ -336,6 +340,51 @@ async function runResume(args) {
     deadlineAt,
   }));
   printClaudeResponse(result, values.json);
+}
+
+async function runImportSession(args) {
+  const { values, positionals } = parseArgs({
+    args,
+    strict: true,
+    allowPositionals: true,
+    options: {
+      ...promptOptions,
+      session: { type: "string" },
+      "confirm-concurrent-resume": { type: "string" },
+      "text-only": { type: "boolean" },
+    },
+  });
+  if (values.help) {
+    return printCommandHelp(
+      "import-session --session <uuid> [options] [context]\n  Summarizes an existing Claude session into a Codex-ready prompt. It does not import the transcript or create a Codex session.",
+    );
+  }
+  if (!values.session) throw new BridgeError("import-session requires --session <uuid>.");
+  const deadlineAt = commandDeadline(values["timeout-seconds"], 900);
+  const prompt = positionals.length || values.prompt !== undefined || values["prompt-file"] !== undefined
+    ? await readPrompt({
+      prompt: values.prompt,
+      promptFile: values["prompt-file"],
+      positionals,
+      cwd: values.cwd,
+      timeoutMs: remainingInputTime(deadlineAt),
+    })
+    : undefined;
+  const result = await importSession({
+    ...commonPromptValues(values, prompt || "Continue from this session in Codex.", {
+      resumeId: values.session,
+      confirmConcurrentResume: values["confirm-concurrent-resume"],
+      textOnly: values["text-only"],
+      deadlineAt,
+    }),
+  });
+  if (values.json) {
+    printResult(result, true);
+  } else {
+    process.stdout.write(`${result.codexPrompt}\n`);
+    process.stderr.write(`Claude session summarized: ${terminalLine(result.sourceSessionId)}\n`);
+    process.stderr.write("Transcript imported: no; paste the Codex-ready handoff into a Codex task.\n");
+  }
 }
 
 async function runReview(args, forcedMode) {

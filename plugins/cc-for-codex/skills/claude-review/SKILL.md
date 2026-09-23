@@ -13,6 +13,14 @@ Use the executable bridge launcher at the sibling skill path `../claude-code/scr
 - `adversarial-review`: the same scope and safeguards, but challenges assumptions, tradeoffs, real-world failure modes, and simpler alternatives.
 - `ultrareview`: Anthropic's cloud-hosted multi-agent review. Use only when the user explicitly asks for ultrareview and accepts upload and potential usage-credit billing.
 
+## Model defaults
+
+Standard and adversarial reviews use Claude Opus 5.5 (`claude-opus-5-5`) by
+default through the bridge. Sonnet 5 (`claude-sonnet-5`) remains the explicit
+fast alternative; Fable 5.1 (`claude-fable-5-1`) is an explicit long-horizon
+alternative. Cloud `ultrareview` uses Anthropic's product-selected cloud
+model and does not accept the local `--model` flag.
+
 ## Procedure
 
 1. Read the repository's `AGENTS.md` and `CLAUDE.md` yourself first. Identify any named plan.
