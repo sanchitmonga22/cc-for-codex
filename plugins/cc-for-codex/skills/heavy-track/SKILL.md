@@ -6,11 +6,13 @@ description: "Run the full Codex-first workflow for risky, multi-file, architect
 # Codex-first heavy track
 
 Use this as the entrypoint when a change is expensive to get wrong. Codex owns
-the plan, the active implementation checkout, validation, and the final report.
-The heavy track's two cross-model rounds are Claude's read-only challenge of the
-plan and review of the finished diff; request/confirm them when they may
-consume Claude usage. Never let Claude and Codex edit the same checkout at the
-same time.
+the plan, triage, integration, validation, and final report by default. The
+implementation executor is selectable: GPT-6 Sol remains the default, while an
+explicit Claude Opus 5.5 execution mode can write and run commands in a
+generated worktree. The heavy track's two cross-model rounds are Claude's
+read-only challenge of the plan and review of the finished diff; request/confirm
+them when they may consume Claude usage. Never let Claude and Codex edit the
+same checkout at the same time.
 
 ## Default model routing
 
@@ -26,6 +28,20 @@ unavailable default before substituting.
   (`claude-opus-5-5`). Use Fable 5.1 (`claude-fable-5-1`) only when explicitly
   requested for a long-horizon challenge.
 - Final report: GPT-6 Sol at `high`.
+
+The implementation executor is an explicit per-run choice:
+
+- **Codex execution (default):** GPT-6 Sol writes the approved plan's changes
+  in the active Codex worktree.
+- **Claude execution (opt-in):** Claude Opus 5.5 writes and runs validation in
+  a generated isolated worktree with full execution enabled. This requires the
+  separate `isolated-worktree`, `bypass-host-safety`, and `full-host-access`
+  confirmations; it never edits the active Codex checkout. Use `$claude-sessions`
+  to monitor a background run, then inspect its returned worktree and diff.
+
+Do not choose Claude execution merely because the model is available. The user
+must explicitly say to use Claude for execution and accept the dangerous
+permission and Bash/host-access implications.
 
 ## Choose the entry mode
 
@@ -67,7 +83,8 @@ base. If two refs remain plausible, ask before planning. Record the chosen
 3. At the gate, show the plan summary, challenge/triage results, validation
    commands, exclusions, and unresolved decisions. Stop for an explicit go
    unless autonomous mode was granted.
-4. After go, invoke `$heavy-build` and name the plan file before the first edit.
+4. After go, invoke `$heavy-build`, name the plan file, and record the selected
+   executor (`codex` or explicit `claude-opus-5-5`) before the first edit.
 5. Return separate statuses for implemented, validated, end-to-end proven,
    Claude-reviewed, committed, merged, and deployed. Do not collapse them into
    “done.”
@@ -85,7 +102,8 @@ added automatically.
 
 - Use one writer per checkout. Claude write delegation, when explicitly
   requested, belongs in `$claude-delegate` and must use its isolated worktree;
-  Codex validates and integrates the result separately.
+  Codex validates and integrates the result separately. Full execution is
+  never enabled by an ordinary review or delegation prompt.
 - Do not copy personal `~/.claude` or `~/.codex` settings, credentials, model
   preferences, or machine paths into a repository workflow.
 - Do not modify `.env*`, production settings, migrations, or protected branches

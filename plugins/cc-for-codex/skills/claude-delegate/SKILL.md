@@ -16,8 +16,19 @@ explicit `--model claude-sonnet-5` for a faster pass or
 - Foreground read-only: `delegate <prompt>`.
 - Background read-only: after screening the prompt for secrets, disclose that background sessions have no supported max-budget guard and that the full prompt is temporarily visible to same-account local process inspection. After the user accepts both, add `--background --confirm-background unbounded-usage --confirm-background-data process-visible-prompt`.
 - Foreground isolated write: the bridge defaults to `dangerous` zero-prompt permissions. Explain that a worktree is not a host sandbox and Claude file tools may reach host paths when permission checks are bypassed. After explicit authorization of both the edit and that risk, add `--write --confirm-write isolated-worktree --confirm-dangerous-permissions bypass-host-safety`.
+- Foreground full-execution write: only when the user explicitly asks Claude to
+  execute the task, add `--write --execution full --model claude-opus-5-5
+  --effort high --confirm-write isolated-worktree
+  --confirm-dangerous-permissions bypass-host-safety
+  --confirm-execution full-host-access`. This adds Bash to the file tools and
+  bypasses Claude prompts. It remains worktree-scoped by convention, not by OS
+  sandbox; inspect all commands and the diff afterward.
 - Foreground guarded write: when the user does not authorize bypass or requests the safer profile, add `--write --write-permissions guarded --confirm-write isolated-worktree`. This remains zero-prompt through `dontAsk` plus explicit `Edit,Write` preapproval, but protected Git/Claude/config paths are denied.
-- Background isolated write: combine the chosen write-mode confirmation(s) with both background confirmations. The Claude agent receives only built-in file tools; it cannot run shell commands, tests, WebFetch, MCP, or GitHub actions through the automatic tool surface. Codex validates afterward.
+- Background isolated write: combine the chosen write-mode confirmation(s) with
+  both background confirmations. File-only writes cannot run commands; full
+  execution can run Bash after the additional `full-host-access` confirmation.
+  Monitor the job with `$claude-sessions`, then inspect the worktree and have
+  Codex validate afterward.
 
 ## One-writer rule
 

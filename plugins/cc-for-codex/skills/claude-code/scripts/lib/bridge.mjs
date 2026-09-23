@@ -514,11 +514,20 @@ export async function delegate(options) {
   if (!write && options.writePermissions !== undefined) {
     throw new BridgeError("--write-permissions is valid only with --write.");
   }
+  if (!write && options.writeExecution !== undefined) {
+    throw new BridgeError("--execution is valid only with --write.");
+  }
   const writePermissions = write
     ? validateWritePermissions(
         options.writePermissions ?? process.env.CC_FOR_CODEX_WRITE_PERMISSIONS ?? "dangerous",
       )
     : undefined;
+  const writeExecution = write
+    ? validateWriteExecution(options.writeExecution ?? "files")
+    : undefined;
+  if (writeExecution === "full" && writePermissions !== "dangerous") {
+    throw new BridgeError("--execution full requires --write-permissions dangerous because it enables Bash with bypassed Claude prompts.");
+  }
   const readEnvironment = write
     ? undefined
     : await guardedReadRepositoryEnvironment(
@@ -623,15 +632,24 @@ export async function delegate(options) {
         "Dangerous write permissions bypass Claude's host safety checks. Re-run with --confirm-dangerous-permissions bypass-host-safety only after explicit user authorization.",
       );
     }
+    if (writeExecution === "full" && options.confirmExecution !== "full-host-access") {
+      throw new BridgeError(
+        "Full execution enables Bash with bypassed Claude prompts. Re-run with --confirm-execution full-host-access only after explicit user authorization.",
+      );
+    }
   }
 
   const fixedInstruction = write
-    ? "You are working for Codex in an isolated Claude-created git worktree. Make only the requested changes. Never merge, push, publish, delete the worktree, change host configuration, or access the network. Do not run repository code or shell commands; Codex will validate separately. Read AGENTS.md and CLAUDE.md explicitly when present. At the end, report changed files, what remains unverified, the worktree path, and the branch name."
+    ? writeExecution === "full"
+      ? "You are working for Codex in an isolated Claude-created git worktree with explicit full-execution authorization. Make only the requested changes. You may run the repository's validation commands with Bash, but do not access secrets or unrelated host paths, change host configuration, merge, push, publish, or delete the worktree. Read AGENTS.md and CLAUDE.md explicitly when present. At the end, report changed files, commands and real outputs, what remains unverified, the worktree path, and the branch name."
+      : "You are working for Codex in an isolated Claude-created git worktree. Make only the requested changes. Never merge, push, publish, delete the worktree, change host configuration, or access the network. Do not run repository code or shell commands; Codex will validate separately. Read AGENTS.md and CLAUDE.md explicitly when present. At the end, report changed files, what remains unverified, the worktree path, and the branch name."
     : "You are a read-only investigator working for Codex. Analyze the request and repository, but do not edit files, run commands, access the network, or delegate. Read AGENTS.md and CLAUDE.md explicitly when present. Return concrete findings and validation advice.";
   const prompt = wrapUserPrompt(fixedInstruction, options.prompt);
   if (background) assertBackgroundPromptSize(prompt, "delegation");
 
-  const profileArgs = write ? writeProfileArgs(writePermissions) : readProfileArgs(false, "safe");
+  const profileArgs = write
+    ? writeProfileArgs(writePermissions, writeExecution)
+    : readProfileArgs(false, "safe");
   const tuning = background ? [] : tuningArgs(options, 30, capabilityHelp);
   const sessionArgs = [];
   if (write) {
@@ -704,9 +722,12 @@ export async function delegate(options) {
       bridgeVersion: BRIDGE_VERSION,
       kind: "background-delegation",
       warning: writePermissions === "dangerous"
-        ? "Background sessions have no max-budget guard, their prompt is process-visible while launching, and dangerous write permissions bypass Claude's permission checks. The built-in tool list is file-only, but a worktree is not an OS sandbox."
+        ? writeExecution === "full"
+          ? "Background sessions have no max-budget guard, their prompt is process-visible while launching, and full execution enables Bash with bypassed Claude permission checks. The generated worktree is not an OS sandbox."
+          : "Background sessions have no max-budget guard, their prompt is process-visible while launching, and dangerous write permissions bypass Claude's permission checks. The built-in tool list is file-only, but a worktree is not an OS sandbox."
         : "Background sessions have no max-budget guard, and their prompt is process-visible while launching. Use status and stop to monitor usage.",
       writePermissions,
+      writeExecution,
       worktree,
       session,
     };
@@ -749,8 +770,11 @@ export async function delegate(options) {
   return {
     ...response,
     writePermissions,
+    writeExecution,
     warning: writePermissions === "dangerous"
-      ? "Dangerous write permissions bypass Claude's permission checks. Built-in tools are limited to file operations in a generated worktree, but the worktree is not an OS sandbox; use --write-permissions guarded for zero-prompt restricted edits."
+      ? writeExecution === "full"
+        ? "Full execution enables Bash with bypassed Claude permission checks. The generated worktree is not an OS sandbox; inspect the diff and command output before integrating it."
+        : "Dangerous write permissions bypass Claude's permission checks. Built-in tools are limited to file operations in a generated worktree, but the worktree is not an OS sandbox; use --write-permissions guarded for zero-prompt restricted edits."
       : undefined,
     worktree,
   };
@@ -1279,7 +1303,7 @@ function readProfileArgs(textOnly, profile) {
   return args;
 }
 
-function writeProfileArgs(writePermissions) {
+function writeProfileArgs(writePermissions, writeExecution = "files") {
   const args = [
     "--safe-mode",
     "--strict-mcp-config",
@@ -1287,7 +1311,7 @@ function writeProfileArgs(writePermissions) {
     "--permission-prompts",
     "none",
     "--tools",
-    "Read,Glob,Grep,Edit,Write",
+    writeExecution === "full" ? "Read,Glob,Grep,Edit,Write,Bash" : "Read,Glob,Grep,Edit,Write",
     "--settings",
     JSON.stringify({ worktree: { baseRef: "head" } }),
   ];
@@ -1308,6 +1332,13 @@ function writeProfileArgs(writePermissions) {
 function validateWritePermissions(value) {
   if (!new Set(["dangerous", "guarded"]).has(value)) {
     throw new BridgeError("--write-permissions must be 'dangerous' or 'guarded'.");
+  }
+  return value;
+}
+
+function validateWriteExecution(value) {
+  if (!new Set(["files", "full"]).has(value)) {
+    throw new BridgeError("--execution must be 'files' or 'full'.");
   }
   return value;
 }

@@ -21,6 +21,9 @@ heavy cross-model workflow is selected and the usage is approved.
   plan rather than production code. Fable 5.1 (`claude-fable-5-1`) is an
   explicit long-horizon alternative; Sonnet 5 remains the fast alternative.
 - Triage: GPT-6 Sol at `high`; confidence is not evidence.
+- Final plan: after triage, GPT-6 Sol alone updates the plan with accepted
+  findings, rejected alternatives, the selected executor, and the final
+  validation/evidence checklist. This is the plan handed to the build phase.
 
 ## Establish the starting state
 

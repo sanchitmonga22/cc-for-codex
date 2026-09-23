@@ -1761,6 +1761,45 @@ test("write delegation is isolated, file-only, dangerous by default, and configu
   assert.equal(delegated.worktree.branch, `worktree-${delegated.worktree.name}`);
   assert.equal(delegated.worktree.path.endsWith(`/.claude/worktrees/${delegated.worktree.name}`), true);
 
+  const fullConfirmMissing = fixture.run([
+    "delegate",
+    "--write",
+    "--execution",
+    "full",
+    "--confirm-write",
+    "isolated-worktree",
+    "--confirm-worktree-include",
+    "copy-ignored-files",
+    "--confirm-dangerous-permissions",
+    "bypass-host-safety",
+    "fix with execution",
+  ]);
+  assert.notEqual(fullConfirmMissing.status, 0);
+  assert.match(fullConfirmMissing.stderr, /confirm-execution full-host-access/u);
+
+  const full = fixture.run([
+    "delegate",
+    "--write",
+    "--execution",
+    "full",
+    "--confirm-execution",
+    "full-host-access",
+    "--confirm-write",
+    "isolated-worktree",
+    "--confirm-worktree-include",
+    "copy-ignored-files",
+    "--confirm-dangerous-permissions",
+    "bypass-host-safety",
+    "--json",
+    "fix with execution",
+  ]);
+  assert.equal(full.status, 0, full.stderr);
+  const fullReport = JSON.parse(full.stdout);
+  const fullCall = fixture.calls().filter((entry) => entry.args.includes("--worktree")).at(-1);
+  assert.equal(fullReport.writeExecution, "full");
+  assert.equal(fullCall.args[fullCall.args.indexOf("--tools") + 1], "Read,Glob,Grep,Edit,Write,Bash");
+  assert.equal(fullCall.args.includes("--dangerously-skip-permissions"), true);
+
   const guarded = fixture.run([
     "delegate",
     "--write",

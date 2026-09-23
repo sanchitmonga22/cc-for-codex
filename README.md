@@ -182,6 +182,9 @@ mode: `fresh`, `resume`, or `autonomous`.
    longer, highest-capability challenge; Sonnet 5 remains the fast alternative.
 4. **TRIAGE:** GPT-6 Sol classifies each point as `ACCEPT`, `INVESTIGATE`, or
    `REJECT`, with evidence. Codex confidence is not evidence.
+5. **FINAL PLAN:** GPT-6 Sol alone updates the plan after triage with the
+   accepted findings, selected executor, final validation checklist, and
+   explicit out-of-scope boundaries.
 
 **⛔ Gate — stop.** Before go, there is no branch, edit, “prepping files,”
 commit, or push. Return the plan path, a concise plan, the triage table,
@@ -191,20 +194,24 @@ stopping for the chat response.
 
 #### `$heavy-build` — only after go
 
-5. **BRANCH:** create a branch off the resolved `BASE` before the first edit;
-   never commit to `BASE`. Default: GPT-6 Sol — high.
-6. **IMPLEMENT:** stay within the plan and record deviations as they happen.
-   Default: GPT-6 Sol — high.
-7. **VALIDATE:** run the real command, paste the real output, and rerun until
-   green. Default: GPT-6 Sol — high.
-8. **E2E:** exercise the running system where the acceptance criteria require
+6. **EXECUTOR:** default to GPT-6 Sol — high in a dedicated branch. If the user
+   explicitly chooses Claude execution, Claude Opus 5.5 may write and run
+   commands in a generated worktree with full execution; it never edits the
+   Codex checkout. The opt-in command is documented in `$heavy-build` and
+   requires the exact dangerous/full-host-access confirmations.
+7. **IMPLEMENT:** stay within the plan and record deviations as they happen.
+   The selected executor reports changed files and real command output.
+8. **VALIDATE:** rerun the real command from the integration checkout, paste
+   the real output, and rerun until green. GPT-6 Sol owns the final validation.
+9. **E2E:** exercise the running system where the acceptance criteria require
    it; unit tests wearing an E2E costume do not count.
-9. **REVIEW:** Claude Code reviews with `--base "$BASE"` as cross-model round 2
-   of 2. Default: Claude Opus 5.5 (`claude-opus-5-5`); use Fable 5.1
+10. **REVIEW:** GPT-6 Sol reviews the integrated diff and evidence, then Claude
+   Code reviews with `--base "$BASE"` as cross-model round 2 of 2. Default:
+   Claude Opus 5.5 (`claude-opus-5-5`); use Fable 5.1
    (`claude-fable-5-1`) for an explicitly requested long-horizon review.
-10. **FIX:** triage findings, fix accepted issues, and rerun validation. An
-    unverified fix is an unfixed issue. Default: GPT-6 Sol — high.
-11. **REPORT:** GPT-6 Sol — high writes
+11. **FIX:** GPT-6 Sol triages both reviews, fixes accepted issues, and reruns
+    validation. An unverified fix is an unfixed issue.
+12. **REPORT:** GPT-6 Sol — high writes
     `~/.claude/plans/<name>-report.md` with implemented, validated, E2E-proven,
     reviewed, committed, merged, and deployed status separated.
 
@@ -321,8 +328,19 @@ RUNNER="plugins/cc-for-codex/scripts/cc-for-codex"
   --confirm-write isolated-worktree \
   --confirm-dangerous-permissions bypass-host-safety \
   "implement the requested change"
+"$RUNNER" delegate --write --execution full \
+  --model claude-opus-5-5 --effort high \
+  --confirm-write isolated-worktree \
+  --confirm-dangerous-permissions bypass-host-safety \
+  --confirm-execution full-host-access \
+  "implement and validate the requested change"
 "$RUNNER" status --all
 ```
+
+The full-execution example is opt-in and dangerous: it enables Claude's Bash
+tool and bypasses Claude permission prompts inside a generated worktree. It is
+not an OS sandbox. Use it only when the user explicitly chooses Claude as the
+executor; otherwise GPT-6 Sol remains the heavy-build writer.
 
 `import-session` is the supported Claude-to-Codex bridge for a known Claude
 session UUID. It resumes that Claude session read-only, asks for a structured

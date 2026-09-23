@@ -1,6 +1,6 @@
 {
   "name": "cc-for-codex",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Run a Codex-first engineering workflow with optional guarded Claude Code reviews, delegation, and session workflows.",
   "author": {
     "name": "Sanchit Monga",
@@ -31,6 +31,7 @@
       "Session management",
       "Installation verification",
       "Codex-first heavy workflow",
+      "Opt-in Claude execution",
       "Opt-in global workflow setup"
     ],
     "defaultPrompt": [

@@ -502,12 +502,14 @@ async function runDelegate(args) {
       "confirm-write": { type: "string" },
       "confirm-worktree-include": { type: "string" },
       "confirm-dangerous-permissions": { type: "string" },
+      "confirm-execution": { type: "string" },
+      execution: { type: "string" },
       "write-permissions": { type: "string" },
     },
   });
   if (values.help) {
     return printCommandHelp(
-      "delegate [--background|--wait] [--fresh|--resume <uuid>] [--write] [options] [prompt]\n  Read-only by default. --write requires a fresh isolated worktree and defaults to zero-prompt dangerous file permissions.\n  Use --write-permissions guarded (or CC_FOR_CODEX_WRITE_PERMISSIONS=guarded) for restricted pre-approved edits.\n  Background mode requires usage and process-visible-prompt confirmations.",
+      "delegate [--background|--wait] [--fresh|--resume <uuid>] [--write] [options] [prompt]\n  Read-only by default. --write requires a fresh isolated worktree and defaults to zero-prompt dangerous file permissions.\n  Use --execution full with --confirm-execution full-host-access to enable Bash; it requires dangerous permissions.\n  Use --write-permissions guarded (or CC_FOR_CODEX_WRITE_PERMISSIONS=guarded) for restricted file-only edits.\n  Background mode requires usage and process-visible-prompt confirmations.",
     );
   }
   if (values.profile !== undefined || values["confirm-native-profile"] !== undefined) {
@@ -536,6 +538,8 @@ async function runDelegate(args) {
     confirmWrite: values["confirm-write"],
     confirmWorktreeInclude: values["confirm-worktree-include"],
     confirmDangerousPermissions: values["confirm-dangerous-permissions"],
+    confirmExecution: values["confirm-execution"],
+    writeExecution: values.execution,
     writePermissions: values["write-permissions"],
     deadlineAt,
   }));

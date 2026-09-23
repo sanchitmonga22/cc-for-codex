@@ -31,6 +31,7 @@ The target is workflow parity with OpenAI's official reverse-direction [`codex-p
 | Background quick review | `$claude-review --background` | `claude --bg` | Guarded core | Inline scope must fit the argv bound; no structured-result guarantee; diff is process-visible after explicit consent |
 | Background investigation | `$claude-delegate` | `claude --bg` | Guarded core | No supported max-budget flag; process-visible prompt requires separate consent |
 | Isolated file edits | `$claude-delegate --write` | `claude --worktree ...` | Explicit-risk partial | Creates `worktree-<name>`; dangerous permission bypass is the configured default behind a second exact confirmation; `guarded` is zero-prompt restricted; no Bash/WebFetch/tests; filtered, partial/promisor, shared/alternate-object, and sparse repos are refused |
+| Full Claude execution | `$claude-delegate --write --execution full` | `claude --dangerously-skip-permissions` plus `Bash` | Explicit-risk opt-in | Requires `full-host-access`; generated worktree, Bash, and bypassed prompts are not an OS sandbox; Codex must inspect output and rerun validation |
 | Job list/logs/stop | `$claude-sessions` | `agents --json`, `logs`, `stop` | Core | Exact 8-hex IDs, canonical cwd scope |
 | Respawn/remove/attach | `$claude-sessions` | `respawn`, `rm`, `attach` | Guarded core | Billing restart, worktree deletion, or TTY boundary |
 | Session continuation | `$claude-code resume` | `-p --resume <uuid>` | Core | Full UUID differs from background short ID |
