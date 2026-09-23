@@ -2574,21 +2574,80 @@ test("rescue supports explicit fresh and UUID resume routing", () => {
   fixture.cleanup();
 });
 
-test("import-session emits a Codex-ready handoff without claiming transcript import", () => {
+test("import-session archives the full transcript and emits a referenced Codex handoff", () => {
   const fixture = makeFixture({ FAKE_CLAUDE_JOB_STATE: "stopped" });
   const sessionId = "29c90d15-2b3c-4a8d-968c-53db4fa6a3ec";
+  const claudeHome = join(fixture.cwd, "claude-home");
+  const codexHome = join(fixture.cwd, "codex-home");
+  const project = join(claudeHome, "projects", "source-project");
+  const transcript = '{"type":"user","text":"original conversation"}\n{"type":"assistant","text":"prior decision"}\n';
+  mkdirSync(project, { recursive: true });
+  writeFileSync(join(project, `${sessionId}.jsonl`), transcript);
+  mkdirSync(join(project, sessionId, "subagents"), { recursive: true });
+  writeFileSync(join(project, sessionId, "subagents", "agent.jsonl"), '{"type":"assistant","text":"subagent detail"}\n');
+  fixture.env.CLAUDE_CONFIG_DIR = claudeHome;
+  fixture.env.CODEX_HOME = codexHome;
+
   const result = fixture.run(["import-session", "--session", sessionId, "--json"]);
   assert.equal(result.status, 0, result.stderr);
   const payload = JSON.parse(result.stdout);
   assert.equal(payload.kind, "codex-session-import");
   assert.equal(payload.sourceSessionId, sessionId);
   assert.equal(payload.transcriptImported, false);
+  assert.equal(payload.transcriptArchived, true);
+  assert.equal(readFileSync(payload.transcriptArchive.transcriptPath, "utf8"), transcript);
+  assert.equal(
+    readFileSync(join(payload.transcriptArchive.sidecarPath, "subagents", "agent.jsonl"), "utf8"),
+    '{"type":"assistant","text":"subagent detail"}\n',
+  );
+  assert.ok(payload.codexPrompt.includes(payload.transcriptArchive.transcriptPath));
+  assert.ok(payload.codexPrompt.includes(payload.transcriptArchive.metadataPath));
+  assert.ok(payload.codexPrompt.includes(payload.transcriptArchive.transcriptSha256));
+  assert.match(payload.codexPrompt, /Before continuing, inspect the archived transcript/u);
+  assert.match(payload.codexPrompt, /do not proceed from the summary alone/u);
+  assert.match(payload.codexPrompt, new RegExp(`claude --resume ${sessionId}`, "u"));
   assert.match(payload.codexPrompt, /Continue this task from a Claude Code session/u);
   assert.match(payload.codexPrompt, /fake response/u);
   const modelCall = fixture.calls().find((entry) => entry.args.includes("--resume"));
   assert.ok(modelCall);
   assert.equal(modelCall.args[modelCall.args.indexOf("--resume") + 1], sessionId);
   assert.equal(modelCall.args[modelCall.args.indexOf("--model") + 1], DEFAULT_CLAUDE_MODEL);
+  fixture.cleanup();
+});
+
+test("plain import-session output exposes the persistent transcript path for later viewing", () => {
+  const fixture = makeFixture({ FAKE_CLAUDE_JOB_STATE: "stopped" });
+  const sessionId = "29c90d15-2b3c-4a8d-968c-53db4fa6a3ec";
+  const claudeHome = join(fixture.cwd, "claude-home");
+  const codexHome = join(fixture.cwd, "codex-home");
+  const project = join(claudeHome, "projects", "source-project");
+  mkdirSync(project, { recursive: true });
+  writeFileSync(join(project, `${sessionId}.jsonl`), '{"type":"user","text":"keep this"}\n');
+  fixture.env.CLAUDE_CONFIG_DIR = claudeHome;
+  fixture.env.CODEX_HOME = codexHome;
+
+  const result = fixture.run(["import-session", "--session", sessionId]);
+  assert.equal(result.status, 0, result.stderr);
+  const archiveLine = result.stderr.split("\n").find((line) => line.startsWith("Full Claude transcript archived locally: "));
+  assert.ok(archiveLine);
+  const transcriptPath = archiveLine.slice("Full Claude transcript archived locally: ".length);
+  assert.equal(existsSync(transcriptPath), true);
+  assert.ok(result.stdout.includes(transcriptPath));
+  fixture.cleanup();
+});
+
+test("import-session refuses a missing transcript before making a billed Claude request", () => {
+  const fixture = makeFixture();
+  const sessionId = "29c90d15-2b3c-4a8d-968c-53db4fa6a3ec";
+  fixture.env.CLAUDE_CONFIG_DIR = join(fixture.cwd, "claude-home");
+  fixture.env.CODEX_HOME = join(fixture.cwd, "codex-home");
+  mkdirSync(join(fixture.env.CLAUDE_CONFIG_DIR, "projects"), { recursive: true });
+
+  const result = fixture.run(["import-session", "--session", sessionId, "--json"]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /local Claude transcript.*not found/u);
+  assert.equal(fixture.calls().some((entry) => entry.args.includes("-p")), false);
+  assert.equal(existsSync(join(fixture.env.CODEX_HOME, "claude-session-archives")), false);
   fixture.cleanup();
 });
 

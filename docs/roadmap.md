@@ -1,24 +1,14 @@
 # Roadmap
 
-## v0.1 — local production foundation
+## Current release — v0.2.4
 
-- Git/local Codex marketplace with six Claude integration skills, three Codex-first workflow skills, and an opt-in Stop hook
-- Nine focused skills and one shared dependency-free runner
-- Doctor/auth redaction
-- Safe ask, structured review, and adversarial review
-- Explicit ultrareview with forced `--no-post`
-- Read-only and separately confirmed worktree file-edit delegation with dangerous/guarded zero-prompt profiles
-- Background status/log/result/stop/respawn/remove/attach
-- Persisted handoff/resume
-- Guarded native escape hatch for audited finite-command CLI reach, excluding live stream-JSON protocols and `--post`
-- Fake-Claude security and lifecycle tests
-- Bounded Stop review gate with trust, billing, partial-evidence, fail-open, and loop controls
-
-## v0.2 — installation and verification
-
-- Copy-paste Codex installer prompt and `$claude-verify` installed/local/live verification workflow
-- Required Codex-first global workflow setup with a dry-run/apply installer, backups, and a marker-scoped uninstaller
-- Light/heavy workflow documentation with explicit default model routing and evidence boundaries
+- Git/local Codex marketplace with ten skills, one optional Stop hook, and a shared dependency-free runner
+- Guarded Claude CLI consultation, structured/adversarial review, isolated delegation, background lifecycle, persistent handoff/resume, and audited finite-command native access
+- `$claude-import` preserves the exact local session JSONL and same-session sidecars in a private, checksummed archive; Codex receives a stable transcript reference and is instructed to inspect the source rather than rely on a lossy summary
+- Copy-paste installer/verification workflow and reversible Codex-first global instruction setup
+- Light/heavy workflow guidance with explicit model routing and evidence boundaries
+- Fake-Claude security/lifecycle tests and archive-integrity/skill-contract tests
+- Bounded optional Stop review gate with trust, billing, partial-evidence, fail-open, and loop controls
 
 ## v0.3 — lifecycle hardening
 
@@ -48,4 +38,4 @@
 - Public support/privacy/terms documentation
 - Universal-directory submission only if provider authorization and OpenAI policy eligibility are resolved
 
-Full transcript parity is not promised unless Anthropic publishes a supported Codex conversation importer. `claude import codex` currently concerns configuration, not Codex task history.
+The local transcript archive preserves the Claude conversation as a readable source reference, but does not create a native Codex conversation, replay Claude tool calls, or guarantee every transcript detail is always loaded into Codex's active context. `claude import codex` currently concerns configuration, not Codex task history.

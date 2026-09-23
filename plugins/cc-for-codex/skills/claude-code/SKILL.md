@@ -41,6 +41,7 @@ Invoke that absolute launcher path directly. It resolves a Node executable outsi
 - Use `$claude-review` for normal, adversarial, or ultrareview code review.
 - Use `$claude-delegate` for foreground/background delegation or isolated edits.
 - Use `$claude-sessions` for background status, logs, stop, respawn, removal, or attach.
+- Use `$claude-import` to bring a known Claude session into Codex with a private archive of the full local transcript and a concise summary.
 - Use `$claude-setup` for installation/auth/version diagnosis.
 - Use this skill's `ask`, `handoff`, and `resume` commands for general consultation.
 
@@ -49,9 +50,11 @@ Invoke that absolute launcher path directly. It resolves a Node executable outsi
 - Never call Claude merely because a second opinion might be interesting. The user must ask to use Claude or approve the delegation.
 - Never use `--profile native`, `native`, bypass-permissions flags, Claude plugins, MCP, Chrome, remote control, cloud sessions, or configuration mutations without an exact user request and the matching bridge confirmation. `$claude-delegate` owns the separately confirmed dangerous-write workflow; ordinary read calls never activate it.
 - `handoff` creates a fresh persisted Claude session from a Codex-authored brief. It does not copy hidden Codex context, tool calls, approvals, or the complete transcript.
-- `import-session --session <uuid>` resumes an existing Claude session and asks
-  it for a Codex-ready summary. It is a bounded handoff, not transcript import:
-  Codex must verify the summary in the current checkout.
+- `import-session --session <uuid>` archives the full local JSONL transcript
+  and same-session sidecars privately before resuming Claude read-only for a
+  Codex-ready index summary. The prompt references the archive; Codex can read
+  it on demand. It does not inject the entire transcript into the current
+  context or create a new Codex task.
 - Do not place secrets in prompts, especially background prompts, which can be visible in a local process listing.
 - Do not use native passthrough as a workaround for a rejected guarded command.
 

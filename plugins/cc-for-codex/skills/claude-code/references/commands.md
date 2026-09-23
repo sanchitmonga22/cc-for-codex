@@ -14,11 +14,21 @@ import-session --session UUID [context]
 
 Shared foreground controls are `--model`, `--effort`, `--max-turns`, `--max-budget-usd`, `--fallback-model`, `--timeout-seconds`, and `--cwd`. When `--model` is omitted, the bridge passes `--model claude-opus-5-5`; use `claude-sonnet-5` or `claude-fable-5-1` explicitly when appropriate.
 
-`import-session` resumes an existing Claude session read-only, asks for a
-structured Codex-ready summary, and prints a handoff prompt. It does not copy
-the Claude transcript or create a Codex session. If the Claude session is
-active, add `--confirm-concurrent-resume may-create-copy` only after accepting
-that Claude may create a concurrent copy.
+`import-session` first copies the exact local JSONL transcript and any
+same-session subagent/tool-result sidecars into a user-private archive under
+`$CODEX_HOME/claude-session-archives/` (or `~/.codex/claude-session-archives/`),
+then resumes Claude read-only for a structured index summary. The JSON result
+includes the archive path, source UUID, and SHA-256 of the transcript; the
+Codex-ready prompt points to the complete archived transcript and the original
+`claude --resume <uuid>` command, and includes the SHA-256 in the handoff. This
+preserves a viewable source record without pretending the summary itself is
+lossless or creating another Codex task. The archive is plaintext, may contain
+sensitive content, and persists locally until removed; Claude's own transcript
+may still be subject to its configured cleanup period. If the full local
+transcript cannot be located or safely copied, the bridge fails before making
+the summary request. If the Claude session is active, add
+`--confirm-concurrent-resume may-create-copy` only after accepting that Claude
+may create a concurrent copy.
 
 If the target session is already working or blocked, resume refuses by default because Claude may create a concurrent copy. Use `--confirm-concurrent-resume may-create-copy` only after the user chooses that behavior.
 

@@ -44,7 +44,7 @@ const skillsRoot = resolve(pluginRoot, "skills");
 const skillDirectories = readdirSync(skillsRoot)
   .map((name) => ({ name, path: resolve(skillsRoot, name) }))
   .filter((entry) => statSync(entry.path).isDirectory());
-expect(skillDirectories.length >= 9, "expected six Claude integration skills and three Codex workflow skills");
+expect(skillDirectories.length === 10, "expected seven Claude integration skills and three Codex workflow skills");
 
 for (const skill of skillDirectories) {
   const skillMd = readRequired(resolve(skill.path, "SKILL.md"));
@@ -70,6 +70,9 @@ for (const relativePath of [
   "plugins/cc-for-codex/references/global/CLAUDE.md",
   "plugins/cc-for-codex/references/global/AGENTS.md",
   "plugins/cc-for-codex/skills/claude-code/scripts/cc-for-codex.mjs",
+  "plugins/cc-for-codex/skills/claude-code/scripts/lib/transcript-archive.mjs",
+  "plugins/cc-for-codex/skills/claude-import/SKILL.md",
+  "plugins/cc-for-codex/skills/claude-import/agents/openai.yaml",
 ]) {
   readRequired(resolve(root, relativePath));
 }
@@ -77,6 +80,8 @@ for (const relativePath of [
 const readme = readRequired(resolve(root, "README.md"));
 expect(readme.includes("https://learn.chatgpt.com/docs/build-plugins"), "README must link OpenAI plugin docs");
 expect(readme.includes("https://code.claude.com/docs/en/cli-reference"), "README must link Claude CLI docs");
+expect(readme.includes("https://code.claude.com/docs/en/claude-directory"), "README must link Claude transcript storage docs");
+expect(readme.includes("https://code.claude.com/docs/en/commands"), "README must link Claude transcript command docs");
 expect(readme.includes("unofficial"), "README must include the non-affiliation disclaimer");
 expect(readme.includes("Use $claude-verify to verify CC for Codex."), "README must include the copy-paste verification handoff");
 

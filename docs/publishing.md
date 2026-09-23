@@ -2,7 +2,7 @@
 
 ## Supported today
 
-This repository is a valid Git/local Codex marketplace: `.agents/plugins/marketplace.json` points to the nine-skill package with an auto-discovered optional Stop hook under `plugins/cc-for-codex`. Anyone with the repository URL can add that marketplace and install the plugin.
+This repository is a valid Git/local Codex marketplace: `.agents/plugins/marketplace.json` points to the ten-skill package with an auto-discovered optional Stop hook under `plugins/cc-for-codex`. Anyone with the repository URL can add that marketplace and install the plugin.
 
 That open-source distribution path is distinct from OpenAI's universal public plugin directory.
 
@@ -27,7 +27,7 @@ CC for Codex intentionally depends on a separately installed/authenticated third
 4. Run `npm run audit:docs`; the scheduled CI job also detects upstream documentation drift.
 5. Install from a fresh local marketplace snapshot and start a new Codex task.
 6. Exercise doctor and fake-CLI tests; do not make a paid Claude call in CI.
-7. Update `CHANGELOG.md`, package/plugin versions, and the CLI coverage snapshot date.
+7. Update `CHANGELOG.md`, package/plugin/lockfile versions, and the CLI coverage snapshot date.
 8. Tag the release and verify the GitHub install path from a clean machine.
 
 ## Future public-submission prerequisites
@@ -35,6 +35,6 @@ CC for Codex intentionally depends on a separately installed/authenticated third
 - written provider authorization and naming/branding review;
 - OpenAI eligibility clarification for local-only third-party CLI dependencies;
 - public support, privacy, and terms pages;
-- at least five positive and three negative trigger tests covering the nine skills;
+- at least five positive and three negative trigger tests covering the ten skills;
 - supported-surface declaration that makes the local Codex dependency explicit;
 - clean-environment review and a privacy/data-flow assessment.

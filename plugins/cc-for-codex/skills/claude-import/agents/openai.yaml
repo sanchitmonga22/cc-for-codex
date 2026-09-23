@@ -1,0 +1,4 @@
+interface:
+  display_name: "Claude Import"
+  short_description: "Continue in Codex from a Claude session"
+  default_prompt: "Use $claude-import to continue from this Claude Code session UUID: <UUID>."

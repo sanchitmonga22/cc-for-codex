@@ -8,6 +8,21 @@ The executable shell launcher resolves Node outside the current repository befor
 
 The wrapper strips terminal control sequences, caps prompt/output sizes, uses bounded timeouts, validates model/effort/ref/path/ID inputs, and returns only an allowlist from `claude auth status`.
 
+## Claude session import archive
+
+`import-session` requires a unique local Claude JSONL transcript before it
+makes a model request. It copies that exact transcript plus same-session
+subagent/tool-result sidecars into
+`$CODEX_HOME/claude-session-archives/<session-id>/` (default
+`~/.codex/claude-session-archives/<session-id>/`) with mode `0700` directories
+and `0600` files. Each snapshot includes a SHA-256 and source-path metadata;
+Codex receives the archive path and can consult the full record when its
+summary omits context. The archive is unencrypted plaintext, may contain
+credentials or sensitive repository content, and persists until the user
+removes it. Missing, ambiguous, symlinked, or oversized local session data
+fails closed before the billed summary request. The ordinary active-session
+guard still runs before the archive is created.
+
 ## Explicit risk gates
 
 - Native local customizations can add hooks, plugins, or other executable behavior.

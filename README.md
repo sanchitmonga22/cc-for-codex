@@ -26,10 +26,10 @@ https://github.com/user-attachments/assets/bdba3033-1279-4283-a587-0cc50fa43b2f
 [Download the original recording](docs/assets/cc-for-codex-workflow.mp4)
 
 <details>
-<summary>See CC for Codex in the plugin browser — six Claude integration skills and starter prompts</summary>
+<summary>Historical plugin-browser screenshot from v0.2.0 — the current v0.2.4 package has ten skills</summary>
 
 <p align="center">
-  <a href="docs/assets/cc-for-codex-plugin-store.png"><img src="docs/assets/cc-for-codex-plugin-store.png" alt="User-provided plugin browser screenshot showing the six CC for Codex skills and optional hook; captured before the branding refresh" width="800" /></a>
+  <a href="docs/assets/cc-for-codex-plugin-store.png"><img src="docs/assets/cc-for-codex-plugin-store.png" alt="Historical v0.2.0 plugin browser screenshot showing the original six skills; current v0.2.4 adds four more, including Claude Import" width="800" /></a>
 </p>
 
 </details>
@@ -114,6 +114,7 @@ Foreground `-p --worktree` delegation skips Claude's workspace-trust prompt. Bef
 | Skill | Natural-language example | What it does |
 |---|---|---|
 | `$claude-code` | “Ask Claude for a second opinion on this API.” | Guarded read-only one-shot, persisted handoff, and resume |
+| `$claude-import` | “Continue in Codex from Claude session `<UUID>`.” | Archives the full local transcript privately and gives Codex a handoff summary plus a persistent path to the source record |
 | `$claude-review` | “Have Claude adversarially review this branch against main.” | Structured standard/adversarial review; opt-in ultrareview |
 | `$claude-delegate` | “Delegate this fix to Claude in an isolated worktree.” | Foreground/background investigation; dangerous zero-prompt edits by default, with a guarded option |
 | `$claude-sessions` | “Show my Claude jobs and the latest logs.” | Repo-scoped status, logs, stop, respawn, remove, and attach |
@@ -343,12 +344,25 @@ not an OS sandbox. Use it only when the user explicitly chooses Claude as the
 executor; otherwise GPT-6 Sol remains the heavy-build writer.
 
 `import-session` is the supported Claude-to-Codex bridge for a known Claude
-session UUID. It resumes that Claude session read-only, asks for a structured
-handoff, and prints a Codex-ready prompt that you can paste into a new Codex
-task. The UUID in the example is illustrative. This is not transcript import:
-Codex must inspect the current checkout and verify the handoff. If the Claude
-session is still active, add `--confirm-concurrent-resume may-create-copy`
-after accepting Claude's concurrent-copy behavior.
+session UUID. Before its read-only summary call, it copies the exact local
+JSONL transcript and same-session sidecars to
+`$CODEX_HOME/claude-session-archives/<session-id>/` (or
+`~/.codex/claude-session-archives/<session-id>/`) with user-only permissions.
+The JSON response and Codex-ready prompt include the archived transcript path,
+source session UUID, SHA-256, and `claude --resume <UUID>` reference. The
+summary is not lossless; the handoff instructs Codex to inspect the archived
+full transcript before continuing, and to search/page it if it is too large to
+load at once. The archive is plaintext and may contain sensitive
+content, so it remains local and should be handled accordingly. The original
+Claude session itself may still be subject to Claude's retention cleanup. If
+the local transcript is missing, ambiguous, or unsafe to copy, import stops
+before making the summary request. To revisit it later, open the returned
+`transcriptPath` in Codex or a text editor, or run `less '<transcriptPath>'` in
+the terminal; `archive.json` records the source UUID and transcript SHA-256.
+The UUID in the example is illustrative.
+If the Claude session is still active, add
+`--confirm-concurrent-resume may-create-copy` only after accepting Claude's
+concurrent-copy behavior.
 
 An ultrareview is intentionally noisy to opt into:
 
@@ -378,6 +392,8 @@ Anthropic / Claude Code:
 - [Programmatic/headless mode](https://code.claude.com/docs/en/headless)
 - [Permission modes](https://code.claude.com/docs/en/permission-modes)
 - [Sessions](https://code.claude.com/docs/en/sessions)
+- [Claude commands, including `/export` and `/resume`](https://code.claude.com/docs/en/commands)
+- [Claude local transcript storage and retention](https://code.claude.com/docs/en/claude-directory)
 - [Background agents and agent view](https://code.claude.com/docs/en/agent-view)
 - [Worktrees](https://code.claude.com/docs/en/worktrees)
 - [Ultrareview](https://code.claude.com/docs/en/ultrareview)

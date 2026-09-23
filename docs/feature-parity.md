@@ -14,7 +14,7 @@ The target is workflow parity with OpenAI's official reverse-direction [`codex-p
 | Result | `$claude-sessions`, `result` | `claude logs <id>` | Partial | Claude has no dedicated structured background-result subcommand; an exact ID is required |
 | Cancel | `$claude-sessions`, `cancel` | `claude stop <id>` | Guarded core | Recoverable stop; unlike the reverse plugin, the exact repo-scoped ID and confirmation are required |
 | Transfer | `$claude-code`, `handoff` / `transfer` | Fresh persisted `claude -p` session | Partial | Claude does not expose a Codex transcript importer; hidden context/tool history cannot transfer |
-| Claude session into Codex | `import-session --session <uuid>` | `claude -p --resume <uuid>` with a read-only handoff prompt | Partial / explicit | Produces a Codex-ready summary for paste or task handoff; it does not import the Claude transcript or create a Codex session |
+| Claude session into Codex | `$claude-import`, `import-session --session <uuid>` | `claude -p --resume <uuid>` with a read-only handoff prompt | Partial / explicit | Archives the exact local JSONL transcript and session sidecars with a hash and persistent path; the summary is an index, not full context injection or a new Codex task |
 | Resume | `$claude-code`, `resume` | `claude -p --resume <uuid>` | Full | Reasserts read-only bridge policy |
 | Review gate | `review-gate` + bundled Stop hook | Codex Stop hook invoking the guarded structured review | Opt-in partial | Disabled by default; requires hook trust and billed-review consent; one continuation max; reviews the full dirty tree rather than only the preceding turn's edits |
 

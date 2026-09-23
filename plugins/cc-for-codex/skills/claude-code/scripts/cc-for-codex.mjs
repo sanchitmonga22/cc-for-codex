@@ -356,7 +356,7 @@ async function runImportSession(args) {
   });
   if (values.help) {
     return printCommandHelp(
-      "import-session --session <uuid> [options] [context]\n  Summarizes an existing Claude session into a Codex-ready prompt. It does not import the transcript or create a Codex session.",
+      "import-session --session <uuid> [options] [context]\n  Archives the full local Claude transcript privately, then returns a Codex-ready summary and transcript reference. Does not create another Codex task.",
     );
   }
   if (!values.session) throw new BridgeError("import-session requires --session <uuid>.");
@@ -383,7 +383,8 @@ async function runImportSession(args) {
   } else {
     process.stdout.write(`${result.codexPrompt}\n`);
     process.stderr.write(`Claude session summarized: ${terminalLine(result.sourceSessionId)}\n`);
-    process.stderr.write("Transcript imported: no; paste the Codex-ready handoff into a Codex task.\n");
+    process.stderr.write(`Full Claude transcript archived locally: ${terminalLine(result.transcriptArchive.transcriptPath)}\n`);
+    process.stderr.write("Codex task created: no; paste the handoff into a Codex task and inspect the archived transcript before continuing.\n");
   }
 }
 

@@ -1,7 +1,7 @@
 {
   "name": "cc-for-codex",
-  "version": "0.2.3",
-  "description": "Run a Codex-first engineering workflow with optional guarded Claude Code reviews, delegation, and session workflows.",
+  "version": "0.2.4",
+  "description": "Run a Codex-first engineering workflow with guarded Claude Code reviews, delegation, and transcript-preserving session handoffs.",
   "author": {
     "name": "Sanchit Monga",
     "url": "https://github.com/sanchitmonga22"
@@ -16,19 +16,21 @@
     "delegation",
     "second-opinion",
     "planning",
+    "session-handoff",
     "implementation-workflow"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "CC for Codex",
     "shortDescription": "Use local Claude Code workflows from Codex.",
-    "longDescription": "Plan, implement, validate, and review substantial work from Codex using GPT-6 Sol by default, GPT-6 Luna for heavy exploration, and local Claude Code with Claude Opus 5.5 as the primary second opinion; Sonnet 5 and Fable 5.1 remain explicit alternatives.",
+    "longDescription": "Plan, implement, validate, and review substantial work from Codex using GPT-6 Sol by default, GPT-6 Luna for heavy exploration, and local Claude Code with Claude Opus 5.5 for second opinions, delegation, and full-transcript-preserving session handoffs; Sonnet 5 and Fable 5.1 remain explicit alternatives.",
     "developerName": "Sanchit Monga",
     "category": "Productivity",
     "capabilities": [
       "Code review",
       "Task delegation",
       "Session management",
+      "Claude session handoff",
       "Installation verification",
       "Codex-first heavy workflow",
       "Opt-in Claude execution",

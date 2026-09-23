@@ -2,7 +2,7 @@
 
 All notable changes follow semantic versioning.
 
-## Unreleased
+## 0.2.4 - 2026-09-23
 
 - Make Claude Opus 5.5 (`claude-opus-5-5`) the bridge default, while retaining explicit Sonnet 5 and Fable 5.1 overrides.
 - Align Codex-first workflow defaults on GPT-6 Sol at high effort, with GPT-6 Luna at high or max reserved for heavy exploration.
@@ -10,6 +10,9 @@ All notable changes follow semantic versioning.
 - Add `$heavy-track`, `$heavy-plan`, and `$heavy-build` for a Codex-first heavy workflow.
 - Document the Codex-first role split and the light/heavy workflow with explicit model-routing defaults.
 - Add the required `workflow install` command and a reversible `workflow uninstall` command with portable global instruction templates, backups, and idempotent checks.
+- Add `$claude-import` to preserve an exact Claude transcript and same-session sidecars in a private, checksummed Codex-home archive, then hand Codex a summary plus a stable source reference.
+- Fail closed before the summary request when the source transcript is missing, ambiguous, unsafe, or exceeds archive limits; add archive and skill-contract unit coverage.
+- Include the import skill and transcript retention behavior in package integrity, verification, security, architecture, and feature-parity documentation.
 
 ## 0.2.3 - 2026-09-23
 

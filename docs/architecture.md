@@ -2,11 +2,12 @@
 
 ## Decision
 
-CC for Codex is a Codex plugin with nine skills, one optional Stop hook, and a shared local process runner. Six skills integrate with Claude Code; three (`heavy-track`, `heavy-plan`, and `heavy-build`) provide the Codex-first workflow. This deliberately combines the components the project needs:
+CC for Codex is a Codex plugin with ten skills, one optional Stop hook, and a shared local process runner. Seven skills integrate with Claude Code, including `$claude-import`, which privately archives a known session's exact local transcript and sidecars before requesting a read-only summary handoff; three (`heavy-track`, `heavy-plan`, and `heavy-build`) provide the Codex-first workflow. This deliberately combines the components the project needs:
 
 - The **plugin** is the versioned, installable marketplace package.
 - The **skills** are the discoverable workflows Codex invokes.
 - The **runner** turns those model-authored workflows into validated Claude CLI argument arrays.
+- The **transcript archive** keeps a private, checksummed local source record so a summary never has to be treated as a lossless replacement.
 - The **hook** optionally runs the same guarded review at Codex Stop after separate trust and billing opt-ins.
 
 No MCP server is required in v0.2. A local MCP server would add lifecycle and protocol complexity without removing the local Claude CLI/auth dependency. Anthropic's `claude mcp serve` exposes Claude Code tools to an MCP client; it is not a supported “Claude as a model” endpoint.
@@ -19,7 +20,7 @@ plugins/cc-for-codex/
   .codex-plugin/plugin.json             Codex package manifest
   hooks/hooks.json                      Auto-discovered optional Stop hook
   hooks/stop-review-gate                Hook launcher
-  skills/                               Six Claude integration + three Codex workflow skills
+  skills/                               Seven Claude integration + three Codex workflow skills
   scripts/cc-for-codex                  Safe executable launcher
   scripts/install-global-workflow.mjs   Required, idempotent global instruction setup
   scripts/uninstall-global-workflow.mjs Reversible removal of only managed blocks
