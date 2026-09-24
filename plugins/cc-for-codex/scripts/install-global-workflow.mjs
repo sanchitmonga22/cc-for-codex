@@ -62,8 +62,8 @@ export function resolveGlobalWorkflowTargets({ claudeFile, codexFile, home = hom
 }
 
 /**
- * Preview or append the managed role blocks. `apply` is deliberately required
- * for mutation; the operation is idempotent and never replaces existing prose.
+ * Preview or install the managed role blocks. `apply` is deliberately required
+ * for mutation; only marked content is refreshed and other prose is preserved.
  */
 export function installGlobalWorkflow({
   apply = false,
@@ -93,11 +93,12 @@ export function installGlobalWorkflow({
       return { ...record, action: "already-present" };
     }
     const definition = targetDefinitions.find((item) => item.role === record.role);
+    if (record.state === "outdated") return replaceBlock(definition, record);
     return appendBlock(definition, record);
   });
   return {
     mode: "apply",
-    changed: records.some((record) => record.action === "created" || record.action === "appended"),
+    changed: records.some((record) => ["created", "appended", "updated"].includes(record.action)),
     records,
   };
 }
@@ -114,7 +115,7 @@ export function renderWorkflow(result) {
     if (record.message) lines.push(`Note: ${safeLine(record.message)}`);
   }
   if (result.mode === "check") {
-    lines.push("No files changed. Add --apply to append the managed blocks.");
+    lines.push("No files changed. Add --apply to install or refresh the managed blocks.");
   } else if (!result.changed) {
     lines.push("Both managed blocks were already present; no files changed.");
   }
@@ -169,13 +170,19 @@ function inspectTarget(definition, path) {
   } catch (error) {
     return { role: definition.role, label: definition.label, path, state: "error", message: error.message };
   }
-  const hasBegin = text.includes(WORKFLOW_BEGIN_MARKER);
-  const hasEnd = text.includes(WORKFLOW_END_MARKER);
-  if (hasBegin !== hasEnd) {
+  const begin = text.indexOf(WORKFLOW_BEGIN_MARKER);
+  const end = text.indexOf(WORKFLOW_END_MARKER);
+  if ((begin === -1) !== (end === -1)) {
     return { role: definition.role, label: definition.label, path, state: "error", message: "managed block has only one boundary marker" };
   }
-  if (hasBegin) {
-    return { role: definition.role, label: definition.label, path, state: "already-present" };
+  if (begin !== -1) {
+    if (text.indexOf(WORKFLOW_BEGIN_MARKER, begin + 1) !== -1 ||
+        text.indexOf(WORKFLOW_END_MARKER, end + 1) !== -1 || end < begin) {
+      return { role: definition.role, label: definition.label, path, state: "error", message: "managed block has duplicate or reversed boundary markers" };
+    }
+    const current = text.slice(begin, end + WORKFLOW_END_MARKER.length);
+    const expected = readFileSync(definition.template, "utf8").trim();
+    return { role: definition.role, label: definition.label, path, state: current === expected ? "already-present" : "outdated" };
   }
   if (definition.legacyPattern.test(text)) {
     return {
@@ -203,6 +210,27 @@ function appendBlock(definition, record) {
     throw new Error(`${record.path}: append completed without a complete managed block`);
   }
   return { ...record, action: existing ? "appended" : "created", backupPath };
+}
+
+function replaceBlock(definition, record) {
+  const current = readFileSync(record.path, "utf8");
+  const begin = current.indexOf(WORKFLOW_BEGIN_MARKER);
+  const end = current.indexOf(WORKFLOW_END_MARKER);
+  if (begin === -1 || end < begin ||
+      current.indexOf(WORKFLOW_BEGIN_MARKER, begin + 1) !== -1 ||
+      current.indexOf(WORKFLOW_END_MARKER, end + 1) !== -1) {
+    throw new Error(`${record.path}: managed block changed after inspection`);
+  }
+  const block = readFileSync(definition.template, "utf8").trim();
+  const updated = current.slice(0, begin) + block + current.slice(end + WORKFLOW_END_MARKER.length);
+  const backupPath = makeBackup(record.path);
+  copyFileSync(record.path, backupPath);
+  writeAtomic(record.path, updated, lstatSync(record.path).mode & 0o777);
+  const verified = inspectTarget(definition, record.path);
+  if (verified.state !== "already-present") {
+    throw new Error(`${record.path}: managed block refresh did not verify`);
+  }
+  return { ...record, action: "updated", backupPath };
 }
 
 export function makeBackup(path) {

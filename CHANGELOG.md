@@ -2,6 +2,13 @@
 
 All notable changes follow semantic versioning.
 
+## 0.2.7 - 2026-09-24
+
+- Route ordinary Claude Opus 5.5 calls at explicit `high` effort and explicit Sonnet 5 calls at Claude Code's `ultracode` mode; preserve per-call `--effort` overrides and leave other models on their own defaults.
+- Remove Fable 5.1 from recommended workflow routing while retaining it when a user specifically requests it.
+- Refresh already-installed, marked global instruction blocks on `workflow install --apply`, preserving unrelated prose and making a backup; reject duplicate or reversed markers.
+- Live-test both effort modes against the local Claude Code CLI before release and add model-routing/installer regression tests.
+
 ## 0.2.6 - 2026-09-24
 
 - Accept a Claude-created Git worktree that remains locked after a completed write session when its canonical path, registration, branch, exact base commit, and non-prunable state all verify. Preserve the lock and report it; never unlock or delete the worktree automatically. A still-live lock owner now prevents foreground success, and review of a generated worktree refuses active or ambiguous Claude background sessions.

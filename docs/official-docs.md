@@ -38,9 +38,10 @@ The [Claude Code documentation index](https://code.claude.com/docs/llms.txt) is 
 
 | Source | Routing decision |
 |---|---|
-| [Models overview](https://platform.claude.com/docs/en/models/overview) | Opus 5.5 is the default for most bridge calls; Fable 5.1 is reserved for explicitly requested demanding long-horizon work; Sonnet 5 remains the faster alternative |
-| [Claude Opus 5.5 migration guide](https://platform.claude.com/docs/en/models/opus-5-5/migration-guide) | Canonical API model ID is `claude-opus-5-5`; the bridge uses this ID when `--model` is omitted |
-| [Claude Fable 5.1](https://platform.claude.com/docs/en/models/fable-5-1/overview) | Canonical model ID is `claude-fable-5-1`; explicit opt-in alternative |
+| [Models overview](https://platform.claude.com/docs/en/models/overview) | Opus 5.5 is the default for most bridge calls; Sonnet 5 is an explicit alternative; Fable 5.1 is not recommended by default |
+| [Claude Opus 5.5 migration guide](https://platform.claude.com/docs/en/models/opus-5-5/migration-guide) | Canonical API model ID is `claude-opus-5-5`; the bridge selects it at `high` effort rather than the model's native `medium` default |
+| [Effort guide](https://platform.claude.com/docs/en/build-with-claude/effort) | Opus 5.5 supports `high`; Sonnet 5 supports standard effort levels. `ultracode` is a Claude Code-specific mode, not a standard API level |
+| [Dynamic workflows cookbook](https://platform.claude.com/cookbook/claude-agent-sdk-08-dynamic-workflows) | Documents the interactive `/effort ultracode` mode; the installed Claude Code 2.1.281 also accepted `--effort ultracode` in a live Sonnet 5 `-p` call |
 
 ## Claude Code: permissions and trust
 
@@ -89,7 +90,7 @@ The [Claude Code documentation index](https://code.claude.com/docs/llms.txt) is 
 | [Checkpointing](https://code.claude.com/docs/en/checkpointing) | Claude-owned interactive edit history, not bridge state |
 | [Goals](https://code.claude.com/docs/en/goal), [scheduled tasks](https://code.claude.com/docs/en/scheduled-tasks), and [routines](https://code.claude.com/docs/en/routines) | Claude automation surfaces; use directly/native rather than creating a hidden second scheduler inside Codex |
 | [Self-hosted environments](https://code.claude.com/docs/en/self-hosted-environments) and [feature availability](https://code.claude.com/docs/en/feature-availability) | Provider/plan-dependent cloud execution; native-only and separately confirmed |
-| [Model configuration](https://code.claude.com/docs/en/model-config) | Validated model and effort passthrough; the default Opus 5.5 requires Claude Code 2.1.280 or newer |
+| [Model configuration](https://code.claude.com/docs/en/model-config) | Validated model and effort passthrough; the default Opus 5.5 requires Claude Code 2.1.280 or newer; `ultracode` availability is build-dependent |
 | [Errors](https://code.claude.com/docs/en/errors) | Actionable setup/runtime failure reporting |
 
 ## Agent SDK

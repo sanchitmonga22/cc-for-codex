@@ -29,10 +29,10 @@ read-only review of the finished diff. A third review is never automatic.
 
 ## Model routing defaults
 
-- Claude Opus 5.5 (`claude-opus-5-5`) is the primary Claude Code model for
-  reviews, challenges, and delegated consultation. Sonnet 5
-  (`claude-sonnet-5`) stays available for faster passes; Fable 5.1
-  (`claude-fable-5-1`) is opt-in for long-horizon reasoning.
+- Claude Opus 5.5 (`claude-opus-5-5`) at `high` effort is the primary Claude
+  Code model for reviews, challenges, and delegated consultation. Explicit
+  Sonnet 5 (`claude-sonnet-5`) uses `ultracode` where supported. Do not
+  recommend Fable 5.1 unless the user specifically requests that model.
 - Codex uses GPT-6 Sol at `high` for normal planning, implementation,
   validation, fixes, and reports. GPT-6 Luna at `high` or `max` is reserved for
   heavy-track exploration.

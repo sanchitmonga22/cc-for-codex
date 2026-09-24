@@ -21,12 +21,12 @@ unavailable default before substituting.
 
 - Explore: GPT-6 Luna at `max` (or `high` when latency matters) for
   architecture, invariants, and failure modes; Sonnet 5 (`claude-sonnet-5`)
-  for locations, call sites, and conventions.
+  at `ultracode` for locations, call sites, and conventions.
 - Plan and triage: GPT-6 Sol at `high`.
 - Branch, implementation, validation, and fixes: GPT-6 Sol at `high`.
 - Claude challenge and finished-diff review: Claude Opus 5.5
-  (`claude-opus-5-5`). Use Fable 5.1 (`claude-fable-5-1`) only when explicitly
-  requested for a long-horizon challenge.
+  (`claude-opus-5-5`) at `high`. Use Fable 5.1 only if the user specifically
+  requests that model.
 - Final report: GPT-6 Sol at `high`.
 
 The implementation executor is an explicit per-run choice:

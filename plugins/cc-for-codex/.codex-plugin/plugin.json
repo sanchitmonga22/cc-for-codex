@@ -1,6 +1,6 @@
 {
   "name": "cc-for-codex",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "Run a Codex-first engineering workflow with guarded Claude Code reviews, delegation, and transcript-preserving session handoffs.",
   "author": {
     "name": "Sanchit Monga",
@@ -23,7 +23,7 @@
   "interface": {
     "displayName": "CC for Codex",
     "shortDescription": "Use local Claude Code workflows from Codex.",
-    "longDescription": "Plan, implement, validate, and review substantial work from Codex using GPT-6 Sol by default, GPT-6 Luna for heavy exploration, and local Claude Code with Claude Opus 5.5 for second opinions, delegation, and full-transcript-preserving session handoffs; Sonnet 5 and Fable 5.1 remain explicit alternatives.",
+    "longDescription": "Plan, implement, validate, and review substantial work from Codex using GPT-6 Sol by default, GPT-6 Luna for heavy exploration, and local Claude Code with Claude Opus 5.5 at high effort for second opinions, delegation, and full-transcript-preserving session handoffs; Sonnet 5 at ultracode is an explicit alternative where supported.",
     "developerName": "Sanchit Monga",
     "category": "Productivity",
     "capabilities": [

@@ -46,7 +46,7 @@ Native transport is finite-command argv/stdin passthrough, not universal protoco
 | `--debug-file` | Native + mutation confirmation | Writes a local log file |
 | `--disable-slash-commands` | Native | Safe mode already disables customization loading |
 | `--disallowedTools`, `--disallowed-tools` | Bridge-owned / Native | Guarded commands use an affirmative tool allowlist |
-| `--effort` | Guarded | Enum: `low`, `medium`, `high`, `xhigh`, `max`, `ultracode` |
+| `--effort` | Guarded | CLI help advertises `low`, `medium`, `high`, `xhigh`, `max`; `ultracode` is a Claude Code-specific mode accepted by a live Sonnet 5 `-p` call on 2.1.281. The bridge defaults Opus 5.5 to `high` and explicit Sonnet 5 to `ultracode`, with explicit override support. |
 | `--enable-auto-mode` | Native + mutation confirmation | Deprecated auto-mode alias; never implicit |
 | `--environment` | Native + cloud/mutation confirmation | Self-hosted cloud environment |
 | `--exclude-dynamic-system-prompt-sections` | Native | Advanced prompt-cache behavior |

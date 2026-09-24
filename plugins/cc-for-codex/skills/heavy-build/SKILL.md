@@ -14,9 +14,9 @@ generated worktree; Codex still integrates, validates, reviews, and reports.
 ## Default model routing
 
 - Branch, implementation, validation, and fixes: GPT-6 Sol at `high`.
-- Finished-diff review: Claude Opus 5.5 (`claude-opus-5-5`) with Claude Code.
-  Use Fable 5.1 (`claude-fable-5-1`) only when explicitly requested for a
-  long-horizon review; Sonnet 5 (`claude-sonnet-5`) remains the fast option.
+- Finished-diff review: Claude Opus 5.5 (`claude-opus-5-5`) at `high` with
+  Claude Code. Use Fable 5.1 only if the user specifically requests that
+  model; Sonnet 5 (`claude-sonnet-5`) is available at `ultracode`.
 - Report: GPT-6 Sol at `high`.
 
 ## Select the executor

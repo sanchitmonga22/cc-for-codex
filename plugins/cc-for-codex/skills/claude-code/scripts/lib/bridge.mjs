@@ -59,10 +59,15 @@ const MAX_SUBMODULE_DEPTH = 32;
 const RAW_AGENT_CWD = Symbol("rawAgentCwd");
 const TERMINAL_AGENT_SIGNALS_SAFE = Symbol("terminalAgentSignalsSafe");
 
-// Claude Code's current primary model. Callers can still override this with
-// --model (for example claude-sonnet-5 or claude-fable-5-1).
+// Callers can override the primary model and its model-specific effort.
 export const DEFAULT_CLAUDE_MODEL = "claude-opus-5-5";
 export const MIN_OPUS_5_5_CLI_VERSION = "2.1.280";
+
+export function defaultEffortForModel(model) {
+  if (model === "claude-opus-5-5" || model === "opus") return "high";
+  if (model === "claude-sonnet-5" || model === "sonnet") return "ultracode";
+  return undefined;
+}
 
 export const REVIEW_SCHEMA = {
   type: "object",
@@ -1437,7 +1442,7 @@ function validateWriteExecution(value) {
 function tuningArgs(options, defaultMaxTurns) {
   const args = [];
   const model = validateModel(options.model ?? DEFAULT_CLAUDE_MODEL);
-  const effort = validateEffort(options.effort);
+  const effort = validateEffort(options.effort ?? defaultEffortForModel(model));
   const turns = parseBoundedInteger(options.maxTurns ?? String(defaultMaxTurns), "--max-turns", {
     min: 1,
     max: 200,
@@ -1455,7 +1460,7 @@ function tuningArgs(options, defaultMaxTurns) {
 function backgroundTuningArgs(options) {
   const args = [];
   const model = validateModel(options.model ?? DEFAULT_CLAUDE_MODEL);
-  const effort = validateEffort(options.effort);
+  const effort = validateEffort(options.effort ?? defaultEffortForModel(model));
   if (options.maxTurns !== undefined || options.maxBudgetUsd !== undefined || options.fallbackModel !== undefined) {
     throw new BridgeError("--max-turns, --max-budget-usd, and --fallback-model are print-mode only and cannot guard background sessions.");
   }

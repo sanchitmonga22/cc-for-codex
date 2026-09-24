@@ -9,9 +9,10 @@ Use the executable bridge launcher at the sibling skill path `../claude-code/scr
 
 ## Modes
 
-Ordinary Claude calls default to Claude Opus 5.5 (`claude-opus-5-5`). Pass an
-explicit `--model claude-sonnet-5` for a faster pass or
-`--model claude-fable-5-1` for a user-requested long-horizon pass.
+Ordinary Claude calls default to Claude Opus 5.5 (`claude-opus-5-5`) at
+`high` effort. Explicit `--model claude-sonnet-5` selects Sonnet at
+`ultracode` effort; pass `--effort high` if this CLI does not support that mode.
+Do not route to Fable 5.1 unless the user specifically requests it.
 
 - Foreground read-only: `delegate <prompt>`.
 - Background read-only: after screening the prompt for secrets, disclose that background sessions have no supported max-budget guard and that the full prompt is temporarily visible to same-account local process inspection. After the user accepts both, add `--background --confirm-background unbounded-usage --confirm-background-data process-visible-prompt`.

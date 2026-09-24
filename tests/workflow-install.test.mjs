@@ -59,6 +59,44 @@ test("global workflow installer creates both files and is idempotent", () => {
   }
 });
 
+test("global workflow installer refreshes only stale marked content with backups", () => {
+  const home = makeHome();
+  try {
+    const paths = targets(home);
+    installGlobalWorkflow({ home, apply: true });
+    const original = readFileSync(paths.codexFile, "utf8");
+    const stale = `# User preface\n\n${original.replace("at `high`\n  effort", "at `medium`\n  effort")}\n# User suffix\n`;
+    writeFileSync(paths.codexFile, stale);
+    const preview = inspectGlobalWorkflow({ home });
+    assert.deepEqual(preview.records.map((record) => record.state), ["already-present", "outdated"]);
+    assert.equal(readFileSync(paths.codexFile, "utf8"), stale);
+    const applied = installGlobalWorkflow({ home, apply: true });
+    assert.equal(applied.changed, true);
+    assert.equal(applied.records[1].action, "updated");
+    assert.equal(readFileSync(applied.records[1].backupPath, "utf8"), stale);
+    const updated = readFileSync(paths.codexFile, "utf8");
+    assert.match(updated, /^# User preface\n\n/u);
+    assert.match(updated, /# User suffix\n$/u);
+    assert.match(updated, /at `high`\n  effort/u);
+    assert.deepEqual(inspectGlobalWorkflow({ home }).records.map((record) => record.state), ["already-present", "already-present"]);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("global workflow installer refuses duplicate marked blocks", () => {
+  const home = makeHome();
+  try {
+    const paths = targets(home);
+    installGlobalWorkflow({ home, apply: true });
+    const original = readFileSync(paths.codexFile, "utf8");
+    writeFileSync(paths.codexFile, original + original);
+    assert.throws(() => installGlobalWorkflow({ home, apply: true }), /duplicate or reversed boundary markers/u);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
 test("global workflow installer backs up existing files before appending", () => {
   const home = makeHome();
   try {

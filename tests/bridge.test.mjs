@@ -23,6 +23,7 @@ import {
 } from "../plugins/cc-for-codex/skills/claude-code/scripts/lib/runtime.mjs";
 import {
   DEFAULT_CLAUDE_MODEL,
+  defaultEffortForModel,
   renderAgents,
 } from "../plugins/cc-for-codex/skills/claude-code/scripts/lib/bridge.mjs";
 
@@ -540,8 +541,11 @@ test("ask sends an injection-shaped prompt on stdin with the exact safe profile"
   fixture.cleanup();
 });
 
-test("Claude calls default to Opus 5.5 and allow an explicit model override", () => {
+test("Claude calls route Opus 5.5 to high and Sonnet 5 to ultracode", () => {
   assert.equal(DEFAULT_CLAUDE_MODEL, "claude-opus-5-5");
+  assert.equal(defaultEffortForModel("claude-opus-5-5"), "high");
+  assert.equal(defaultEffortForModel("claude-sonnet-5"), "ultracode");
+  assert.equal(defaultEffortForModel("claude-fable-5-1"), undefined);
 
   const defaultFixture = makeFixture();
   const defaultResult = defaultFixture.run(["ask", "hello"]);
@@ -549,6 +553,7 @@ test("Claude calls default to Opus 5.5 and allow an explicit model override", ()
   const defaultCall = defaultFixture.calls().find((call) => call.args.includes("-p"));
   assert.ok(defaultCall);
   assert.equal(defaultCall.args[defaultCall.args.indexOf("--model") + 1], DEFAULT_CLAUDE_MODEL);
+  assert.equal(defaultCall.args[defaultCall.args.indexOf("--effort") + 1], "high");
   defaultFixture.cleanup();
 
   const overrideFixture = makeFixture();
@@ -557,7 +562,33 @@ test("Claude calls default to Opus 5.5 and allow an explicit model override", ()
   const overrideCall = overrideFixture.calls().find((call) => call.args.includes("-p"));
   assert.ok(overrideCall);
   assert.equal(overrideCall.args[overrideCall.args.indexOf("--model") + 1], "claude-sonnet-5");
+  assert.equal(overrideCall.args[overrideCall.args.indexOf("--effort") + 1], "ultracode");
+  const explicit = overrideFixture.run(["ask", "--model", "claude-sonnet-5", "--effort", "high", "hello"]);
+  assert.equal(explicit.status, 0, explicit.stderr);
+  const explicitCall = overrideFixture.calls().filter((call) => call.args.includes("-p")).at(-1);
+  assert.equal(explicitCall.args[explicitCall.args.indexOf("--effort") + 1], "high");
+  const fable = overrideFixture.run(["ask", "--model", "claude-fable-5-1", "hello"]);
+  assert.equal(fable.status, 0, fable.stderr);
+  const fableCall = overrideFixture.calls().filter((call) => call.args.includes("-p")).at(-1);
+  assert.equal(fableCall.args.includes("--effort"), false);
   overrideFixture.cleanup();
+});
+
+test("background Sonnet delegation uses ultracode without a Fable fallback", () => {
+  const fixture = makeFixture();
+  const result = fixture.run([
+    "delegate", "--background", "--model", "claude-sonnet-5",
+    "--confirm-background", "unbounded-usage",
+    "--confirm-background-data", "process-visible-prompt",
+    "Inspect this bounded question",
+  ]);
+  assert.equal(result.status, 0, result.stderr);
+  const call = fixture.calls().find((entry) => entry.args.includes("--bg"));
+  assert.ok(call);
+  assert.equal(call.args[call.args.indexOf("--model") + 1], "claude-sonnet-5");
+  assert.equal(call.args[call.args.indexOf("--effort") + 1], "ultracode");
+  assert.equal(call.args.includes("claude-fable-5-1"), false);
+  fixture.cleanup();
 });
 
 test("only persisted foreground calls expose a resumable Claude session UUID", () => {
@@ -1510,6 +1541,7 @@ test("review supports explicit foreground and guarded background modes", () => {
   const backgroundCall = fixture.calls().find((entry) => entry.args.includes("--bg"));
   assert.ok(backgroundCall);
   assertProfile(backgroundCall.args, { write: false, textOnly: true });
+  assert.equal(backgroundCall.args[backgroundCall.args.indexOf("--effort") + 1], "high");
   assert.equal(backgroundCall.args.filter((arg) => arg === "--name").length, 1);
   assert.equal(backgroundCall.args.at(-2), "--bg");
   assert.match(backgroundCall.args.at(-1), /race conditions/u);

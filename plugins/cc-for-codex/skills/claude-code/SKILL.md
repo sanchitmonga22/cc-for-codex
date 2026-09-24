@@ -34,11 +34,15 @@ that model change.
 
 ## Model defaults
 
-- The bridge defaults to Claude Opus 5.5 (`claude-opus-5-5`) for ordinary
-  consultation, handoff, and delegation calls. Pass `--model` to override it.
-- Claude Sonnet 5 (`claude-sonnet-5`) remains the faster explicit alternative.
-- Claude Fable 5.1 (`claude-fable-5-1`) is an explicit long-horizon alternative;
-  use it when the user asks for the highest-capability Claude pass.
+- The bridge defaults to Claude Opus 5.5 (`claude-opus-5-5`) at `high` effort
+  for ordinary consultation, handoff, and delegation. Pass `--model` or
+  `--effort` to override the respective default.
+- Claude Sonnet 5 (`claude-sonnet-5`) is an explicit alternative at
+  `ultracode` effort. This mode was live-tested with Claude Code 2.1.281;
+  use an explicit `--effort high` if the installed CLI rejects it.
+- Do not recommend Fable 5.1 as a routine alternative. Use it only when the
+  user specifically requests that model; the bridge then leaves effort to
+  Claude Code unless `--effort` is provided.
 - `$claude-verify` intentionally uses a small smoke-test model when it probes
   the installation. That cost-saving probe does not change the production
   default above.

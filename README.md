@@ -26,10 +26,10 @@ https://github.com/user-attachments/assets/bdba3033-1279-4283-a587-0cc50fa43b2f
 [Download the original recording](docs/assets/cc-for-codex-workflow.mp4)
 
 <details>
-<summary>Historical plugin-browser screenshot from v0.2.0 — the current v0.2.6 package has ten skills</summary>
+<summary>Historical plugin-browser screenshot from v0.2.0 — the current v0.2.7 package has ten skills</summary>
 
 <p align="center">
-  <a href="docs/assets/cc-for-codex-plugin-store.png"><img src="docs/assets/cc-for-codex-plugin-store.png" alt="Historical v0.2.0 plugin browser screenshot showing the original six skills; current v0.2.6 adds four more, including Claude Import" width="800" /></a>
+  <a href="docs/assets/cc-for-codex-plugin-store.png"><img src="docs/assets/cc-for-codex-plugin-store.png" alt="Historical v0.2.0 plugin browser screenshot showing the original six skills; current v0.2.7 adds four more, including Claude Import" width="800" /></a>
 </p>
 
 </details>
@@ -41,13 +41,13 @@ Paste this entire prompt into a Codex task in the macOS app or CLI. It installs 
 ```text
 Install and verify CC for Codex from https://github.com/sanchitmonga22/cc-for-codex.
 
-Do not modify project code, credentials, unrelated settings, or unrelated plugins. The only configuration changes authorized here are adding/upgrading this marketplace, installing this exact plugin, and appending CC for Codex's marked Codex-first blocks to the two global instruction files after their dry run passes. Use the local terminal only for this installation and verification.
+Do not modify project code, credentials, unrelated settings, or unrelated plugins. The only configuration changes authorized here are adding/upgrading this marketplace, installing this exact plugin, and installing or refreshing CC for Codex's marked Codex-first blocks in the two global instruction files after their dry run passes. Use the local terminal only for this installation and verification.
 
 1. Run `codex --version` and confirm the Codex CLI is available.
 2. Inspect `codex plugin marketplace list --json`. Locate the entry named `cc-for-codex` and require its `marketplaceSource.source` to be `https://github.com/sanchitmonga22/cc-for-codex.git` (the same URL without `.git` is also equivalent). If it is absent, run `codex plugin marketplace add sanchitmonga22/cc-for-codex --ref main --json`. If the name exists with any other source, stop and ask me before changing it. If the source matches, run `codex plugin marketplace upgrade cc-for-codex --json`.
-3. Inspect `codex plugin list --json`. If `cc-for-codex@cc-for-codex` is absent or is installed below semver `0.2.6`, run `codex plugin add cc-for-codex@cc-for-codex --json` to install or upgrade it from the refreshed marketplace. Do not remove the existing plugin. If Codex reports that it cannot upgrade in place, stop and report that result before changing the installation.
-4. Inspect `codex plugin list --json` again. Require the exact plugin ID `cc-for-codex@cc-for-codex`, with `installed: true`, `enabled: true`, and version `0.2.6` or newer. Use only that entry's reported `source.path`; do not guess or search for a cache directory. Change directory to that exact path before the next steps.
-5. From that verified source path, run `node scripts/install-global-workflow.mjs --check`, report the absolute targets, then run it with `--apply`. This required step may append only the marked blocks to global `CLAUDE.md` and `AGENTS.md`; if legacy role text is reported, stop and ask before using `--allow-conflicts`.
+3. Inspect `codex plugin list --json`. If `cc-for-codex@cc-for-codex` is absent or is installed below semver `0.2.7`, run `codex plugin add cc-for-codex@cc-for-codex --json` to install or upgrade it from the refreshed marketplace. Do not remove the existing plugin. If Codex reports that it cannot upgrade in place, stop and report that result before changing the installation.
+4. Inspect `codex plugin list --json` again. Require the exact plugin ID `cc-for-codex@cc-for-codex`, with `installed: true`, `enabled: true`, and version `0.2.7` or newer. Use only that entry's reported `source.path`; do not guess or search for a cache directory. Change directory to that exact path before the next steps.
+5. From that verified source path, run `node scripts/install-global-workflow.mjs --check`, report the absolute targets, then run it with `--apply`. This required step may install or refresh only the marked blocks in global `CLAUDE.md` and `AGENTS.md`; if legacy role text is reported, stop and ask before using `--allow-conflicts`.
 6. Run `scripts/cc-for-codex doctor --json`. Confirm that Claude Code is installed, authenticated, and reports the required guarded capabilities. Do not print email addresses, tokens, organization IDs, settings, environment variables, or unrelated plugin details.
 7. I authorize exactly one minimal Claude model request for a live read-only smoke test, which may count against my Anthropic plan or API billing. Run the verified source path's runner with: `ask --model haiku --max-turns 1 --text-only --prompt "Reply with exactly: CC for Codex is connected."` Do not enable native mode, MCP, Chrome, shell tools, edits, background execution, or dangerous permissions.
 8. Require a successful exit and the exact response `CC for Codex is connected.`. Report each check separately as installed, locally configured, locally ready, and live-proven. If any step fails, stop and show the exact failing command and a redacted error; do not weaken safeguards or silently install other software.
@@ -107,9 +107,9 @@ node plugins/cc-for-codex/scripts/install-global-workflow.mjs --apply
 # If legacy role text is reported, review it and rerun --apply --allow-conflicts.
 ```
 
-This appends the portable [Claude](plugins/cc-for-codex/references/global/CLAUDE.md)
+This installs or refreshes the portable [Claude](plugins/cc-for-codex/references/global/CLAUDE.md)
 and [Codex](plugins/cc-for-codex/references/global/AGENTS.md) blocks to the
-absolute global instruction paths. The installer is idempotent, backs up
+absolute global instruction paths. The installer preserves other prose, is idempotent, backs up
 existing files, and refuses symlink targets. The plugin manager does not run
 arbitrary setup scripts during install, so this explicit step is required.
 
@@ -150,6 +150,12 @@ Claude host exposes the same IDs. If a default is unavailable, report the
 runtime's actual availability and ask before substituting; never claim a model
 was used unless the runtime confirms it.
 
+The bridge passes `--effort high` for Opus 5.5 and `--effort ultracode` for
+explicit Sonnet 5 calls unless you override `--effort`. Sonnet's `ultracode`
+mode was live-tested with Claude Code 2.1.281; it is a Claude Code mode, not a
+standard Claude API effort level. If another CLI build rejects it, choose an
+explicit supported effort such as `--effort high` rather than assuming it ran.
+
 ### Light track — implement directly, no ceremony
 
 Use this for a bounded change where a plan, fan-out, branch ritual, and gate
@@ -160,7 +166,7 @@ would add more overhead than confidence.
 | 1 | Edit in the main Codex session | GPT-6 Sol — high |
 | 2 | Run the project's real validation command | GPT-6 Sol — high |
 | 3 | Paste the real output; no completion claim without it | GPT-6 Sol — high |
-| Optional | One Claude Code call only when something feels risky | Claude Opus 5.5 (`claude-opus-5-5`) |
+| Optional | One Claude Code call only when something feels risky | Claude Opus 5.5 (`claude-opus-5-5`) — high |
 
 There is no plan file, fan-out, branch ritual, or approval gate on the light
 track. The optional Claude call remains read-only unless a separate write task
@@ -178,15 +184,15 @@ mode: `fresh`, `resume`, or `autonomous`.
 1. **EXPLORE:** fan out all agents in one message, concurrently. Give each
    agent one narrow question. The defaults are Codex GPT-6 Luna — `max` for
    architecture, invariants, and failure modes (use `high` when latency matters),
-   plus Sonnet 5 (`claude-sonnet-5`) for locations, call sites, and conventions.
+   plus Sonnet 5 (`claude-sonnet-5`) at `ultracode` for locations, call sites,
+   and conventions.
    Five questions means five shallow, scoped answers—not one unfocused sweep.
 2. **PLAN:** GPT-6 Sol — high writes `~/.claude/plans/<name>.md` with the goal,
    resolved `BASE`, approach, why alternatives lost, files, validation, risks,
    and out-of-scope boundaries.
 3. **CHALLENGE:** Claude Code attacks the plan—not the implementation—as
-   cross-model round 1 of 2. Default: Claude Opus 5.5 (`claude-opus-5-5`).
-   Use Fable 5.1 (`claude-fable-5-1`) only when the user explicitly wants a
-   longer, highest-capability challenge; Sonnet 5 remains the fast alternative.
+   cross-model round 1 of 2. Default: Claude Opus 5.5 (`claude-opus-5-5`)
+   at `high`. Do not recommend Fable 5.1 unless the user specifically requests it.
 4. **TRIAGE:** GPT-6 Sol classifies each point as `ACCEPT`, `INVESTIGATE`, or
    `REJECT`, with evidence. Codex confidence is not evidence.
 5. **FINAL PLAN:** GPT-6 Sol alone updates the plan after triage with the
@@ -214,8 +220,8 @@ stopping for the chat response.
    it; unit tests wearing an E2E costume do not count.
 10. **REVIEW:** GPT-6 Sol reviews the integrated diff and evidence, then Claude
    Code reviews with `--base "$BASE"` as cross-model round 2 of 2. Default:
-   Claude Opus 5.5 (`claude-opus-5-5`); use Fable 5.1
-   (`claude-fable-5-1`) for an explicitly requested long-horizon review.
+   Claude Opus 5.5 (`claude-opus-5-5`) at `high`; use Fable 5.1 only when
+   the user specifically requests that model.
 11. **FIX:** GPT-6 Sol triages both reviews, fixes accepted issues, and reruns
     validation. An unverified fix is an unfixed issue.
 12. **REPORT:** GPT-6 Sol — high writes

@@ -12,7 +12,7 @@ handoff [--prompt TEXT | --prompt-file FILE]
 import-session --session UUID [context]
 ```
 
-Shared foreground controls are `--model`, `--effort`, `--max-turns`, `--max-budget-usd`, `--fallback-model`, `--timeout-seconds`, and `--cwd`. When `--model` is omitted, the bridge passes `--model claude-opus-5-5`; use `claude-sonnet-5` or `claude-fable-5-1` explicitly when appropriate.
+Shared foreground controls are `--model`, `--effort`, `--max-turns`, `--max-budget-usd`, `--fallback-model`, `--timeout-seconds`, and `--cwd`. When `--model` is omitted, the bridge passes `--model claude-opus-5-5 --effort high`. Explicit `--model claude-sonnet-5` defaults to `--effort ultracode` on supported Claude Code builds. An explicit `--effort` overrides either default. Fable 5.1 is available only as a specifically requested model override; it is not recommended by default.
 
 `import-session` first copies the exact local JSONL transcript and any
 same-session subagent/tool-result sidecars into a user-private archive under
