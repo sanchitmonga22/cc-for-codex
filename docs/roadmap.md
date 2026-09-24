@@ -1,6 +1,6 @@
 # Roadmap
 
-## Current release — v0.2.4
+## Current release — v0.2.5
 
 - Git/local Codex marketplace with ten skills, one optional Stop hook, and a shared dependency-free runner
 - Guarded Claude CLI consultation, structured/adversarial review, isolated delegation, background lifecycle, persistent handoff/resume, and audited finite-command native access

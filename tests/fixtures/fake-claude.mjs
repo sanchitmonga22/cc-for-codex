@@ -21,7 +21,7 @@ if (process.env.FAKE_CLAUDE_LOG) {
 }
 
 if (args.length === 1 && args[0] === "--version") {
-  process.stdout.write("2.1.260 (Claude Code)\n");
+  process.stdout.write(`${process.env.FAKE_CLAUDE_VERSION || "2.1.280"} (Claude Code)\n`);
   process.exit(0);
 }
 

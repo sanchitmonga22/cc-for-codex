@@ -24,7 +24,7 @@ The [Claude Code documentation index](https://code.claude.com/docs/llms.txt) is 
 | Source | Bridge decision |
 |---|---|
 | [CLI reference](https://code.claude.com/docs/en/cli-reference) | Canonical commands/flags; mirrored in the coverage ledger |
-| [Run programmatically](https://code.claude.com/docs/en/headless) | `-p`, stdin, JSON, JSON Schema, budget and turn controls |
+| [Run programmatically](https://code.claude.com/docs/en/headless) | `-p`, stdin, JSON, JSON Schema, budget/turn controls, and nonzero exit/result behavior for failures |
 | [Authentication](https://code.claude.com/docs/en/authentication) | Reuse the user's local authenticated CLI; never broker credentials |
 | [Troubleshoot install/login](https://code.claude.com/docs/en/troubleshoot-install) | Setup error guidance |
 | [Manage sessions](https://code.claude.com/docs/en/sessions) | Persisted IDs, resume, continue, forks, and session naming |
@@ -89,7 +89,7 @@ The [Claude Code documentation index](https://code.claude.com/docs/llms.txt) is 
 | [Checkpointing](https://code.claude.com/docs/en/checkpointing) | Claude-owned interactive edit history, not bridge state |
 | [Goals](https://code.claude.com/docs/en/goal), [scheduled tasks](https://code.claude.com/docs/en/scheduled-tasks), and [routines](https://code.claude.com/docs/en/routines) | Claude automation surfaces; use directly/native rather than creating a hidden second scheduler inside Codex |
 | [Self-hosted environments](https://code.claude.com/docs/en/self-hosted-environments) and [feature availability](https://code.claude.com/docs/en/feature-availability) | Provider/plan-dependent cloud execution; native-only and separately confirmed |
-| [Model configuration](https://code.claude.com/docs/en/model-config) | Validated model and effort passthrough |
+| [Model configuration](https://code.claude.com/docs/en/model-config) | Validated model and effort passthrough; the default Opus 5.5 requires Claude Code 2.1.280 or newer |
 | [Errors](https://code.claude.com/docs/en/errors) | Actionable setup/runtime failure reporting |
 
 ## Agent SDK

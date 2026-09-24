@@ -86,8 +86,15 @@ test("doctor redacts identity and secret auth fields", () => {
   assert.equal(result.status, 0, result.stderr);
   const report = JSON.parse(result.stdout);
   assert.equal(report.ready, true);
+  assert.equal(report.liveModelCheck, "not_performed");
+  assert.deepEqual(report.defaultModelSupport, {
+    model: "claude-opus-5-5",
+    minimumCliVersion: "2.1.280",
+    satisfied: true,
+  });
   assert.equal(report.auth.loggedIn, true);
   assert.equal(report.auth.authMethod, "claude.ai");
+  assert.equal(fixture.calls().some((entry) => entry.args.includes("-p")), false);
   assert.doesNotMatch(result.stdout, /secret@example|org-secret|Secret Org|private\/secret|never-print/u);
   fixture.cleanup();
 });
@@ -97,6 +104,8 @@ test("default doctor renderer is usable and control-safe", () => {
   const result = fixture.run(["doctor"]);
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /Safe bridge ready: yes/u);
+  assert.match(result.stdout, /Live model\/provider check: not performed/u);
+  assert.match(result.stdout, /Default model supported by CLI: yes \(requires 2\.1\.280\+\)/u);
   assert.equal(result.stdout.includes("\u001b"), false);
   fixture.cleanup();
 });
@@ -356,6 +365,31 @@ test("doctor fails readiness when any guarded core flag is unavailable", () => {
   assert.match(askResult.stderr, /lacks required safety flags/u);
   assert.equal(fixture.calls().some((entry) => entry.args.includes("-p")), false);
   fixture.cleanup();
+});
+
+test("Opus 5.5 checks its documented minimum CLI version and permits an explicit supported alternative", () => {
+  for (const version of ["2.1.279", "2.1.280-beta.1", "unparseable-version"]) {
+    const fixture = makeFixture({ FAKE_CLAUDE_VERSION: version });
+    const reportResult = fixture.run(["doctor", "--json"]);
+    assert.equal(reportResult.status, 3, `doctor should reject ${version}`);
+    const report = JSON.parse(reportResult.stdout);
+    assert.equal(report.ready, false);
+    assert.equal(report.defaultModelSupport.satisfied, false);
+    assert.match(report.missingCoreCapabilities.join(" "), /claude-opus-5-5 requires Claude Code 2\.1\.280 or newer/u);
+
+    const defaultCall = fixture.run(["ask", "hello"]);
+    assert.notEqual(defaultCall.status, 0, `default Opus call should reject ${version}`);
+    assert.match(defaultCall.stderr, /Claude Opus 5\.5 requires Claude Code 2\.1\.280 or newer/u);
+    assert.equal(fixture.calls().some((entry) => entry.args.includes("-p")), false);
+
+    if (version === "2.1.279") {
+      const alternativeCall = fixture.run(["ask", "--model", "claude-sonnet-5", "hello"]);
+      assert.equal(alternativeCall.status, 0, alternativeCall.stderr);
+      const invocation = fixture.calls().find((entry) => entry.args.includes("-p"));
+      assert.ok(invocation.args.includes("claude-sonnet-5"));
+    }
+    fixture.cleanup();
+  }
 });
 
 test("doctor never reports ready when help or auth diagnostics exit nonzero", () => {
@@ -3487,6 +3521,85 @@ test("zero-exit Claude error and malformed result envelopes fail closed", () => 
   malformedFixture.cleanup();
 });
 
+test("Claude provider failures report only a safe diagnostic category", () => {
+  const fixture = makeFixture({
+    FAKE_CLAUDE_RESPONSE: JSON.stringify({
+      type: "result",
+      subtype: "error_during_execution",
+      is_error: true,
+      result: "Model claude-opus-5-5 unavailable for private-user@example.test; secret-token=do-not-print",
+      errors: ["provider detail: private-account-id"],
+    }),
+    FAKE_CLAUDE_EXIT: "1",
+  });
+  const result = fixture.run(["ask", "hello"]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /requested model is unavailable to this account or provider/u);
+  assert.doesNotMatch(
+    result.stdout + result.stderr,
+    /private-user|secret-token|do-not-print|private-account-id|claude-opus-5-5/u,
+  );
+  fixture.cleanup();
+});
+
+test("Claude provider diagnostic categories cover common failure classes without exposing details", () => {
+  const cases = [
+    ["authentication", "authentication failed: 401 token=secret-auth", "authentication or login failure"],
+    ["weekly usage", "You've hit your weekly limit; account id secret-account", "Claude weekly usage limit reached"],
+    ["billing", "usage limit reached; account id secret-account", "account or billing restriction"],
+    ["organization access", "organization is not allowed to use this model", "account or organization access restriction"],
+    ["service", "upstream service overloaded, request secret-request", "Claude service error"],
+    ["network", "ECONNRESET for host secret-host", "network or connection failure"],
+  ];
+  for (const [name, message, category] of cases) {
+    const fixture = makeFixture({
+      FAKE_CLAUDE_RESPONSE: JSON.stringify({
+        type: "result",
+        subtype: "error_during_execution",
+        is_error: true,
+        result: message,
+      }),
+      FAKE_CLAUDE_EXIT: "1",
+    });
+    const result = fixture.run(["ask", "hello"]);
+    assert.notEqual(result.status, 0, `${name} should fail`);
+    assert.match(result.stderr, new RegExp(category, "u"), `${name} category`);
+    assert.doesNotMatch(result.stdout + result.stderr, /secret-auth|secret-account|secret-request|secret-host/u);
+    fixture.cleanup();
+  }
+});
+
+test("malformed Claude failures classify known provider categories without echoing stderr", () => {
+  const fixture = makeFixture({
+    FAKE_CLAUDE_RESPONSE: "not-json private-response",
+    FAKE_CLAUDE_STDERR: "HTTP 429 rate_limit for secret-account-id",
+    FAKE_CLAUDE_EXIT: "1",
+  });
+  const result = fixture.run(["ask", "hello"]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /provider rate limit reached/u);
+  assert.doesNotMatch(result.stdout + result.stderr, /private-response|secret-account-id|HTTP 429/u);
+  fixture.cleanup();
+});
+
+test("failure classification ignores ordinary result text when the envelope is not marked as an error", () => {
+  const fixture = makeFixture({
+    FAKE_CLAUDE_RESPONSE: JSON.stringify({
+      type: "result",
+      subtype: "success",
+      is_error: false,
+      result: "This example discusses HTTP 429 and rate limits.",
+    }),
+    FAKE_CLAUDE_EXIT: "1",
+  });
+  const result = fixture.run(["ask", "hello"]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /exit code 1/u);
+  assert.doesNotMatch(result.stderr, /provider rate limit reached/u);
+  assert.doesNotMatch(result.stdout + result.stderr, /This example discusses/u);
+  fixture.cleanup();
+});
+
 test("early child stdin closure rejects without an unhandled EPIPE", async () => {
   await assert.rejects(
     runProcess(
@@ -4184,7 +4297,7 @@ function assertProfile(args, { write, textOnly = false, dangerous = write }) {
     assert.equal(args.includes("--permission-mode"), false);
     assert.equal(args.includes("--allowedTools"), false);
   } else {
-    assert.equal(args.includes("--restricted"), true);
+    assert.equal(args.includes("--restricted"), write);
     assert.equal(args[args.indexOf("--permission-mode") + 1], "dontAsk");
     assert.equal(args.includes("--dangerously-skip-permissions"), false);
   }

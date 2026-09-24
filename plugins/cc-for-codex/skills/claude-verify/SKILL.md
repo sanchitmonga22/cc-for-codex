@@ -14,7 +14,7 @@ Report installation, local readiness, and live execution as separate claims. A l
 3. Run `codex --version`. If the binary is unavailable, report that the current task loaded the skill but CLI verification is unavailable; do not install or change PATH unless separately requested.
 4. Run `codex plugin list --json` and inspect only the exact `cc-for-codex@cc-for-codex` entry. Require `installed: true` and `enabled: true`. Codex may report the marketplace snapshot in `source.path` while loading skills from its versioned plugin cache, so do not require those paths to be identical. Do not print unrelated plugin entries.
 5. Verify that the plugin root derived from this loaded skill contains `.codex-plugin/plugin.json`, all ten expected skill entrypoints, and `scripts/cc-for-codex`. Require the loaded manifest's name and version to match the exact installed entry, then invoke that absolute runner path with `doctor --json`.
-6. Treat `doctor` as a local, non-model check. Report its allowlisted version, authentication, and capability fields without exposing email, organization IDs, tokens, settings, environment variables, or project paths.
+6. Treat `doctor` as a local, non-model check. Require `ready: true` and `defaultModelSupport.satisfied: true` for the default Opus 5.5 workflow. Report its allowlisted version, authentication, and capability fields without exposing email, organization IDs, tokens, settings, environment variables, or project paths. A ready result does not verify provider entitlement, live model availability, or remaining usage; `liveModelCheck` must remain `not_performed` until an authorized smoke call succeeds.
 
 Expected skill entrypoints:
 
@@ -44,6 +44,11 @@ ask --model haiku --max-turns 1 --text-only --prompt "Reply with exactly: CC for
 This guarded call must remain foreground and read-only. Do not enable native mode, MCP, Chrome, shell tools, edits, background execution, persistence, or dangerous permissions. Require exit status zero and the exact response `CC for Codex is connected.` before calling the bridge live-proven.
 
 If `haiku` is unavailable under the user's provider, report that specific smoke-test failure. Do not silently retry with a more expensive model. Local readiness can still pass independently.
+
+If the live call returns a provider rate-limit category (HTTP 429), mark live
+execution as failed, explain that the configured provider rejected the request,
+and stop. Do not retry in a loop, inspect or print private auth state, or switch
+to another model unless the user explicitly chooses that fallback.
 
 ## Result format
 

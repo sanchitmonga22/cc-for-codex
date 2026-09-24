@@ -2,6 +2,16 @@
 
 All notable changes follow semantic versioning.
 
+## 0.2.5 - 2026-09-24
+
+- Restore live read-only Claude Code calls by removing evaluation-harness `--restricted` from ordinary ask/review launches; on a tested OAuth account, that flag alone produced a weekly-limit rejection while the same Opus 5.5 request succeeded without it. The explicit guarded-write profile retains its filesystem boundary.
+- Recognize Claude's weekly-limit message as a redacted diagnostic category; add a regression check for the read profile and document its read-path limitations.
+- Require Claude Code 2.1.280 or newer for the default Claude Opus 5.5 model, and report model/CLI compatibility separately from provider readiness.
+- Classify common Claude provider failures into safe diagnostic categories without exposing raw account, request, or repository text; never retry or switch models silently.
+- Harden POSIX launchers against `CDPATH` output and report Node startup failures clearly; include shell syntax checks in the standard lint command.
+- Refresh the Claude CLI coverage ledger against 2.1.280, including newly advertised nested-command flags.
+- Expand tests for model-version boundaries, provider failure categories, and secret redaction.
+
 ## 0.2.4 - 2026-09-23
 
 - Make Claude Opus 5.5 (`claude-opus-5-5`) the bridge default, while retaining explicit Sonnet 5 and Fable 5.1 overrides.

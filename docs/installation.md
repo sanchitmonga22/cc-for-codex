@@ -4,7 +4,7 @@
 
 - Codex CLI/app with `codex plugin` marketplace support
 - Node.js 20 or newer
-- Claude Code 2.1.259 or newer, installed locally and authenticated through a Claude subscription, Anthropic API, or a supported provider. Capability-equivalent later builds must expose `--safe-mode`, `--restricted`, `--dangerously-skip-permissions`, `--strict-mcp-config`, `--no-chrome`, `--permission-mode`, `--permission-prompts`, `--tools`, and `--output-format`.
+- Claude Code 2.1.280 or newer, installed locally and authenticated through a Claude subscription, Anthropic API, or a supported provider. This minimum is required by the default Opus 5.5 model. Capability-equivalent builds must expose `--safe-mode`, `--restricted`, `--dangerously-skip-permissions`, `--strict-mcp-config`, `--no-chrome`, `--permission-mode`, `--permission-prompts`, `--tools`, and `--output-format`.
 - Git for review and isolated write workflows
 - macOS or standard Linux. WSL2 is a supported target but has not yet been independently qualified. V0.2 does not include a native Windows launcher or `commandWindows` hook and does not support native Windows.
 
@@ -18,6 +18,24 @@ node --version
 claude --version
 claude auth status
 ```
+
+Local readiness is not a live model check: the `doctor` command verifies the
+installed CLI, authentication state, and required safety flags, but cannot prove
+that a model is entitled, available, or under its usage limit. A live call uses
+the account/provider configured in the local Claude CLI; it does not use a
+Codex subscription. When the provider returns a rate limit (HTTP 429), the
+bridge stops and reports the safe failure category without exposing raw provider
+text. Wait for the provider's limit window to clear, or explicitly choose a
+fallback model when a model change is acceptable; the bridge never silently
+retries or changes the requested model.
+
+The ordinary read-only profile omits `--restricted`. In one tested OAuth
+configuration, that evaluation-harness flag caused a weekly-limit response
+while an otherwise identical Opus 5.5 request succeeded without it. This does
+not establish Anthropic's internal quota rules or guarantee that a genuinely
+exhausted account can continue. The explicit read-only tool list is not a
+filesystem sandbox; the `guarded` write option retains `--restricted` and may
+therefore encounter different account limits.
 
 ## Install from GitHub
 

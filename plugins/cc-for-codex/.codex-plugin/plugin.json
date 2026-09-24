@@ -1,6 +1,6 @@
 {
   "name": "cc-for-codex",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Run a Codex-first engineering workflow with guarded Claude Code reviews, delegation, and transcript-preserving session handoffs.",
   "author": {
     "name": "Sanchit Monga",

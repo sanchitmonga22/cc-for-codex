@@ -62,6 +62,7 @@ const TERMINAL_AGENT_SIGNALS_SAFE = Symbol("terminalAgentSignalsSafe");
 // Claude Code's current primary model. Callers can still override this with
 // --model (for example claude-sonnet-5 or claude-fable-5-1).
 export const DEFAULT_CLAUDE_MODEL = "claude-opus-5-5";
+export const MIN_OPUS_5_5_CLI_VERSION = "2.1.280";
 
 export const REVIEW_SCHEMA = {
   type: "object",
@@ -121,11 +122,13 @@ export async function doctor(options = {}) {
     structuredOutput: help.includes("--json-schema"),
     resume: help.includes("--resume"),
   };
+  const defaultModelSupported = isCliVersionAtLeast(versionRun.stdout, MIN_OPUS_5_5_CLI_VERSION);
   const missingCoreCapabilities = [
     capabilities.structuredOutput ? undefined : "structured output (--json-schema)",
     capabilities.backgroundAgents ? undefined : "background agents (--bg, agents --json, and stop lifecycle control)",
     capabilities.worktrees ? undefined : "isolated worktrees (--worktree)",
     capabilities.resume ? undefined : "session resume (--resume)",
+    defaultModelSupported ? undefined : `default model ${DEFAULT_CLAUDE_MODEL} requires Claude Code ${MIN_OPUS_5_5_CLI_VERSION} or newer`,
   ].filter(Boolean);
 
   let auth = { loggedIn: false };
@@ -159,6 +162,7 @@ export async function doctor(options = {}) {
   const missingSafetyCapabilities = SAFE_FLAGS.filter((flag) => !help.includes(flag));
   const report = {
     bridgeVersion: BRIDGE_VERSION,
+    liveModelCheck: "not_performed",
     ready:
       versionRun.code === 0 &&
       helpRun.code === 0 &&
@@ -170,6 +174,11 @@ export async function doctor(options = {}) {
       missingCoreCapabilities.length === 0,
     binary,
     version: versionRun.stdout.trim() || null,
+    defaultModelSupport: {
+      model: DEFAULT_CLAUDE_MODEL,
+      minimumCliVersion: MIN_OPUS_5_5_CLI_VERSION,
+      satisfied: defaultModelSupported,
+    },
     auth,
     capabilities,
     missingSafetyCapabilities,
@@ -301,6 +310,8 @@ export async function ask(options) {
     profile,
     options.confirmNativeProfile,
     operationTimeoutMs(options, 900, 15_000),
+    options.model ?? DEFAULT_CLAUDE_MODEL,
+    options.fallbackModel,
   );
   if (hasResume) {
     requireHelpFlag(capabilityHelp, "--resume", "session resume");
@@ -402,6 +413,8 @@ export async function review(options) {
     profile,
     options.confirmNativeProfile,
     operationTimeoutMs(options, 1_200, 15_000),
+    options.model ?? DEFAULT_CLAUDE_MODEL,
+    options.fallbackModel,
   );
   const prompt = buildReviewPrompt(scope, options.mode || "standard", options.focus);
   if (options.background) {
@@ -558,6 +571,8 @@ export async function delegate(options) {
     "safe",
     undefined,
     operationTimeoutMs(options, 1_800, 15_000),
+    options.model ?? DEFAULT_CLAUDE_MODEL,
+    options.fallbackModel,
   );
   if (writePermissions === "dangerous" && !capabilityHelp.includes("--dangerously-skip-permissions")) {
     throw new BridgeError("Installed Claude Code lacks --dangerously-skip-permissions, which the selected write profile requires.");
@@ -1104,6 +1119,8 @@ export function renderDoctor(report) {
     `Claude version: ${safeLine(report.version || "unknown")}`,
     `Authenticated: ${report.auth.loggedIn === true ? "yes" : "no"}`,
     `Safe bridge ready: ${report.ready ? "yes" : "no"}`,
+    `Live model/provider check: ${report.liveModelCheck === "not_performed" ? "not performed" : "unknown"}`,
+    `Default model supported by CLI: ${report.defaultModelSupport?.satisfied === true ? "yes" : "no"} (requires ${safeLine(report.defaultModelSupport?.minimumCliVersion || MIN_OPUS_5_5_CLI_VERSION)}+)`,
   ];
   if (report.auth.authMethod) rows.push(`Auth method: ${safeLine(report.auth.authMethod)}`);
   if (report.auth.subscriptionType) rows.push(`Subscription: ${safeLine(report.auth.subscriptionType)}`);
@@ -1201,7 +1218,15 @@ function pickAuthFields(value) {
   });
 }
 
-async function ensureProfile(binary, cwd, profile, confirmed, timeoutMs = 15_000) {
+async function ensureProfile(
+  binary,
+  cwd,
+  profile,
+  confirmed,
+  timeoutMs = 15_000,
+  model = DEFAULT_CLAUDE_MODEL,
+  fallbackModel,
+) {
   if (!new Set(["safe", "native"]).has(profile)) {
     throw new BridgeError("--profile must be 'safe' or 'native'.");
   }
@@ -1221,7 +1246,47 @@ async function ensureProfile(binary, cwd, profile, confirmed, timeoutMs = 15_000
       `Installed Claude Code lacks required safety flags (${missing.join(", ")}). Upgrade Claude Code before using automatic bridge commands.`,
     );
   }
+  const modelTargets = [model ?? DEFAULT_CLAUDE_MODEL, ...(fallbackModel ? fallbackModel.split(",") : [])];
+  if (modelTargets.some(requiresOpus55Cli)) {
+    const versionRun = await runProcess(binary, ["--version"], {
+      cwd,
+      env: guardedClaudeEnvironment(cwd, gitSafetyEnvironment()),
+      allowNonZero: true,
+      timeoutMs,
+    });
+    if (versionRun.code !== 0 || !isCliVersionAtLeast(versionRun.stdout, MIN_OPUS_5_5_CLI_VERSION)) {
+      const detected = parseCliVersion(versionRun.stdout);
+      const suffix = detected ? ` Detected Claude Code ${detected}.` : " Could not verify the installed CLI version.";
+      throw new BridgeError(
+        `Claude Opus 5.5 requires Claude Code ${MIN_OPUS_5_5_CLI_VERSION} or newer.${suffix} Upgrade Claude Code or explicitly choose a supported model.`,
+      );
+    }
+  }
   return help.stdout;
+}
+
+function requiresOpus55Cli(model) {
+  return model === "opus" || model === DEFAULT_CLAUDE_MODEL;
+}
+
+function parseCliVersion(value) {
+  const match = /^\s*(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?(?:\s|$)/u.exec(String(value ?? ""));
+  if (!match) return undefined;
+  const numbers = match.slice(1, 4).map(Number);
+  if (numbers.some((number) => !Number.isSafeInteger(number))) return undefined;
+  return { numbers, prerelease: match[4] !== undefined };
+}
+
+function isCliVersionAtLeast(value, minimum) {
+  const actual = parseCliVersion(value);
+  const required = parseCliVersion(minimum);
+  if (!actual || !required) return false;
+  for (let index = 0; index < actual.numbers.length; index += 1) {
+    if (actual.numbers[index] !== required.numbers[index]) {
+      return actual.numbers[index] > required.numbers[index];
+    }
+  }
+  return !actual.prerelease || required.prerelease;
 }
 
 function requireHelpFlag(help, flag, feature) {
@@ -1307,7 +1372,7 @@ function buildHeadlessArgs(options, capabilityHelp) {
 
 function readProfileArgs(textOnly, profile) {
   const args = profile === "safe"
-    ? ["--safe-mode", "--restricted", "--strict-mcp-config", "--no-chrome"]
+    ? ["--safe-mode", "--strict-mcp-config", "--no-chrome"]
     : ["--no-chrome"];
   args.push(
     "--permission-mode",
@@ -1604,8 +1669,9 @@ function parseClaudeRun(run, label, { persistent = false } = {}) {
     payload = parseJson(run.stdout, label);
   } catch (error) {
     if (run.code !== 0) {
+      const reason = classifyClaudeFailure(undefined, run, { includeStdout: true });
       throw new BridgeError(
-        `${label} failed with exit code ${run.code ?? "unknown"}; stdout and stderr were withheld because they may contain private data.`,
+        `${label} failed${reason ? `: ${reason}` : ` with exit code ${run.code ?? "unknown"}`}; stdout and stderr were withheld because they may contain private data.`,
         { exitCode: run.code || 1 },
       );
     }
@@ -1625,7 +1691,10 @@ function parseClaudeRun(run, label, { persistent = false } = {}) {
     terminalReason === "max_turns" ||
     terminalReason === "max_budget_usd";
   if (failed) {
-    const reason = claudeFailureReason(subtype, terminalReason) ||
+    const reason = classifyClaudeFailure(payload, run, {
+      includeResult: payload.is_error === true || rawSubtype?.startsWith("error_"),
+    }) ||
+      claudeFailureReason(subtype, terminalReason) ||
       (rawSubtype?.startsWith("error_") ? "an unrecognized Claude error state" : undefined);
     const sessionId = persistent
       ? canonicalSessionId(payload.session_id ?? payload.sessionId)
@@ -1648,6 +1717,50 @@ function parseClaudeRun(run, label, { persistent = false } = {}) {
     );
   }
   return normalizeClaudeResponse(payload, run, { persistent });
+}
+
+function classifyClaudeFailure(payload, run, { includeResult = false, includeStdout = false } = {}) {
+  const candidates = [
+    payload?.error,
+    ...(Array.isArray(payload?.errors) ? payload.errors : []),
+    run?.stderr,
+    ...(includeResult ? [payload?.result] : []),
+    ...(includeStdout ? [run?.stdout] : []),
+  ];
+  const text = candidates
+    .filter((value) => typeof value === "string")
+    .map((value) => value.slice(0, 4_000))
+    .join("\n")
+    .toLowerCase();
+  if (!text) return undefined;
+
+  // Classify common provider failures without returning any free-form content:
+  // CLI error strings can contain account, repository, or other private data.
+  if (/weekly (?:usage )?limit|hit your weekly limit/u.test(text)) {
+    return "Claude weekly usage limit reached";
+  }
+  if (/\b(?:429|too many requests)\b|rate[ _-]?limit/u.test(text)) {
+    return "provider rate limit reached";
+  }
+  if (/account on hold|billing|payment required|usage limit|credit balance|\b402\b/u.test(text)) {
+    return "account or billing restriction";
+  }
+  if (/organization.{0,80}not allowed|org.{0,80}not allowed|\b403\b|forbidden|access denied/u.test(text)) {
+    return "account or organization access restriction";
+  }
+  if (/\b401\b|unauthori[sz]ed|authentication failed|not authenticated|not logged in|oauth.{0,40}expired/u.test(text)) {
+    return "authentication or login failure";
+  }
+  if (/model.{0,100}(?:not found|unavailable|not available|does not exist)|(?:not found|unavailable|not available).{0,100}model/u.test(text)) {
+    return "requested model is unavailable to this account or provider";
+  }
+  if (/overloaded|server error|internal server|service unavailable|\b5\d\d\b/u.test(text)) {
+    return "Claude service error";
+  }
+  if (/network|fetch failed|connection|\benotfound\b|\beconn(?:refused|reset|timeout)\b|\betimedout\b|dns lookup/u.test(text)) {
+    return "network or connection failure";
+  }
+  return undefined;
 }
 
 function knownClaudeSubtype(value) {

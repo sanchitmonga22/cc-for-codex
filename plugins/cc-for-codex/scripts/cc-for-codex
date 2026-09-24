@@ -13,7 +13,7 @@ case "$launcher_path" in
   */*)
     launcher_parent=${launcher_path%/*}
     launcher_name=${launcher_path##*/}
-    launcher_parent=$(CDPATH= cd -P "$launcher_parent" 2>/dev/null && pwd -P) || \
+    launcher_parent=$(CDPATH='' cd -P "$launcher_parent" 2>/dev/null && pwd -P) || \
       fail "cannot resolve the installed launcher directory"
     launcher_path=$launcher_parent/$launcher_name
     ;;
@@ -47,7 +47,7 @@ while [ -L "$launcher_path" ]; do
   esac
   launcher_parent=${launcher_path%/*}
   launcher_name=${launcher_path##*/}
-  launcher_parent=$(CDPATH= cd -P "$launcher_parent" 2>/dev/null && pwd -P) || \
+  launcher_parent=$(CDPATH='' cd -P "$launcher_parent" 2>/dev/null && pwd -P) || \
     fail "cannot resolve the installed launcher symlink directory"
   launcher_path=$launcher_parent/$launcher_name
 done

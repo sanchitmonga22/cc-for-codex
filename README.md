@@ -26,10 +26,10 @@ https://github.com/user-attachments/assets/bdba3033-1279-4283-a587-0cc50fa43b2f
 [Download the original recording](docs/assets/cc-for-codex-workflow.mp4)
 
 <details>
-<summary>Historical plugin-browser screenshot from v0.2.0 — the current v0.2.4 package has ten skills</summary>
+<summary>Historical plugin-browser screenshot from v0.2.0 — the current v0.2.5 package has ten skills</summary>
 
 <p align="center">
-  <a href="docs/assets/cc-for-codex-plugin-store.png"><img src="docs/assets/cc-for-codex-plugin-store.png" alt="Historical v0.2.0 plugin browser screenshot showing the original six skills; current v0.2.4 adds four more, including Claude Import" width="800" /></a>
+  <a href="docs/assets/cc-for-codex-plugin-store.png"><img src="docs/assets/cc-for-codex-plugin-store.png" alt="Historical v0.2.0 plugin browser screenshot showing the original six skills; current v0.2.5 adds four more, including Claude Import" width="800" /></a>
 </p>
 
 </details>
@@ -45,8 +45,8 @@ Do not modify project code, credentials, unrelated settings, or unrelated plugin
 
 1. Run `codex --version` and confirm the Codex CLI is available.
 2. Inspect `codex plugin marketplace list --json`. Locate the entry named `cc-for-codex` and require its `marketplaceSource.source` to be `https://github.com/sanchitmonga22/cc-for-codex.git` (the same URL without `.git` is also equivalent). If it is absent, run `codex plugin marketplace add sanchitmonga22/cc-for-codex --ref main --json`. If the name exists with any other source, stop and ask me before changing it. If the source matches, run `codex plugin marketplace upgrade cc-for-codex --json`.
-3. Inspect `codex plugin list --json`. If `cc-for-codex@cc-for-codex` is absent, run `codex plugin add cc-for-codex@cc-for-codex --json`. If it is installed below semver `0.2.0`, run `codex plugin remove cc-for-codex@cc-for-codex --json` and then reinstall it with the preceding `plugin add` command. Do not remove it when the installed version is already `0.2.0` or newer.
-4. Inspect `codex plugin list --json` again. Require the exact plugin ID `cc-for-codex@cc-for-codex`, with `installed: true`, `enabled: true`, and version `0.2.0` or newer. Use only that entry's reported `source.path`; do not guess or search for a cache directory. Change directory to that exact path before the next steps.
+3. Inspect `codex plugin list --json`. If `cc-for-codex@cc-for-codex` is absent or is installed below semver `0.2.5`, run `codex plugin add cc-for-codex@cc-for-codex --json` to install or upgrade it from the refreshed marketplace. Do not remove the existing plugin. If Codex reports that it cannot upgrade in place, stop and report that result before changing the installation.
+4. Inspect `codex plugin list --json` again. Require the exact plugin ID `cc-for-codex@cc-for-codex`, with `installed: true`, `enabled: true`, and version `0.2.5` or newer. Use only that entry's reported `source.path`; do not guess or search for a cache directory. Change directory to that exact path before the next steps.
 5. From that verified source path, run `node scripts/install-global-workflow.mjs --check`, report the absolute targets, then run it with `--apply`. This required step may append only the marked blocks to global `CLAUDE.md` and `AGENTS.md`; if legacy role text is reported, stop and ask before using `--allow-conflicts`.
 6. Run `scripts/cc-for-codex doctor --json`. Confirm that Claude Code is installed, authenticated, and reports the required guarded capabilities. Do not print email addresses, tokens, organization IDs, settings, environment variables, or unrelated plugin details.
 7. I authorize exactly one minimal Claude model request for a live read-only smoke test, which may count against my Anthropic plan or API billing. Run the verified source path's runner with: `ask --model haiku --max-turns 1 --text-only --prompt "Reply with exactly: CC for Codex is connected."` Do not enable native mode, MCP, Chrome, shell tools, edits, background execution, or dangerous permissions.
@@ -61,9 +61,15 @@ This is the reciprocal companion to OpenAI's official [Codex plugin for Claude C
 > [!IMPORTANT]
 > CC for Codex is an unofficial, independent open-source project. It is not affiliated with, endorsed by, or published by Anthropic or OpenAI. It invokes your own locally installed and authenticated `claude` executable; Claude usage follows your Anthropic plan, provider, and billing.
 
+The local readiness check does not guarantee a live model request: entitlement,
+provider availability, and usage limits are controlled by the account configured
+in Claude Code, not a Codex subscription. Provider rate limits stop the call with
+a redacted category; the bridge does not retry indefinitely or silently change
+models.
+
 ## Install in under a minute
 
-Prerequisites: a current [Codex CLI / Codex app](https://developers.openai.com/codex/) and an installed, authenticated [Claude Code CLI](https://code.claude.com/docs/en/quickstart) version 2.1.259 or newer (or a later build exposing the required safety capabilities). V0.2 is tested on macOS and standard Linux. WSL2 is a supported target but has not yet been independently qualified; native Windows is not supported.
+Prerequisites: a current [Codex CLI / Codex app](https://developers.openai.com/codex/) and an installed, authenticated [Claude Code CLI](https://code.claude.com/docs/en/quickstart) version 2.1.280 or newer (or a capability-equivalent build). This floor is required for the default Opus 5.5 model. V0.2 is tested on macOS and standard Linux. WSL2 is a supported target but has not yet been independently qualified; native Windows is not supported.
 
 ```bash
 codex plugin marketplace add sanchitmonga22/cc-for-codex --ref main
@@ -248,7 +254,7 @@ See the [complete head-to-head matrix](docs/feature-parity.md) and the [recursiv
 The default read-only invocation is not a naked `claude -p` call. Print mode skips Claude's workspace trust dialog, so the bridge fixes the boundary itself:
 
 ```text
---safe-mode --restricted --strict-mcp-config --no-chrome
+--safe-mode --strict-mcp-config --no-chrome
 --permission-mode dontAsk --permission-prompts none
 --tools Read,Glob,Grep
 ```
@@ -256,6 +262,7 @@ The default read-only invocation is not a naked `claude -p` call. Print mode ski
 - Foreground prompts are sent over stdin to a child process spawned with `shell: false`.
 - The executable launcher resolves Node outside the current repository before loading JavaScript. Claude and Git executables resolved inside the current repository/workspace are also rejected. Guarded Claude children receive only absolute PATH directories that neither live in nor link back into that workspace.
 - Project hooks, settings, Claude plugins, MCP servers, Chrome, Bash, network access, edits, and subagents are disabled by default.
+- The ordinary read-only profile does not use Claude's evaluation-harness `--restricted` flag. On a tested OAuth account that flag alone caused a weekly-limit rejection while the same Opus 5.5 call succeeded without it. The explicit tool list prevents edits and command execution, but it is not a filesystem sandbox: read tools may access paths permitted by Claude outside the checkout. Reviews disable file tools entirely.
 - Reviews construct their selected git context locally, require every explicit path to match repository evidence, reject hidden `assume-unchanged`/`skip-worktree` entries, disable Claude's file tools, and require a strict non-empty JSON findings schema. Untracked contents, binary bytes, submodules, and truncated diff tails are explicitly reported as partial evidence; source control characters are represented visibly rather than deleted.
 - Git calls clear repository-selection environment overrides, disable optional index locks, use a timestamp-preserving temporary index snapshot for diffing, authenticate normal/linked-worktree/submodule `.git` markers, reject common-directory or alternate-object-store redirection, reject repository-controlled include/includeIf configuration, disable fsmonitor/hooks/textconv, and force submodule recursion off. Before every automatic model launch, the bridge recursively preflights initialized submodules and rejects partial/promisor/shared-object repositories, executable diff configuration, or tracked Git content filters at any level. Write mode also rejects sparse checkouts; ultrareview receives the same Git-startup hardening.
 - Write delegation needs explicit permission and a generated `worktree-<name>` branch based on local `HEAD`; `.claude/worktrees` ancestry must be an in-repository real directory, and the returned path, branch, and base commit are independently verified. Claude gets only `Read`, `Glob`, `Grep`, `Edit`, and `Write`, never Bash or WebFetch. A failed foreground or background write reports the deterministic/verified recovery location; every background failure preserves a valid printed job ID and stop guidance.

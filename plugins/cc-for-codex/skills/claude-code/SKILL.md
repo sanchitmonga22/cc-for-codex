@@ -25,6 +25,13 @@ Invoke that absolute launcher path directly. It resolves a Node executable outsi
 4. Return Claude's answer as attributed second-opinion output. Do not present it as Codex's own verified conclusion. Independently verify claims before taking consequential action.
 5. If `--persist` was requested, preserve the returned Claude session UUID so a later `resume` can use it.
 
+`doctor --json` establishes local binary/auth/capability readiness only; it does
+not prove that the selected model is currently available or that the provider
+has quota. Provider rate-limit and weekly-limit failures are reported as safe categories. Stop
+there: do not loop retries or silently switch models. Retry after the provider
+window clears, or use an explicit `--fallback-model` only when the user accepts
+that model change.
+
 ## Model defaults
 
 - The bridge defaults to Claude Opus 5.5 (`claude-opus-5-5`) for ordinary

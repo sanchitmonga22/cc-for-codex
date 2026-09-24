@@ -1,6 +1,6 @@
 # Claude CLI coverage
 
-This ledger was checked against the locally installed Claude Code `2.1.260` on 2026-09-03 and against Anthropic's [official CLI reference](https://code.claude.com/docs/en/cli-reference). Run `npm run audit:claude` to detect drift without making a model call.
+This ledger was checked against the locally installed Claude Code `2.1.281` on 2026-09-24 and against Anthropic's [official CLI reference](https://code.claude.com/docs/en/cli-reference). Run `npm run audit:claude` to detect drift without making a model call.
 
 Coverage labels:
 
@@ -12,7 +12,7 @@ Coverage labels:
 
 Unless a row is marked **Deferred**, every finite CLI option is also reachable through `native -- ...`, even when the row names only its Guarded or Bridge-owned path. The native confirmations below still apply cumulatively.
 
-The native escape hatch is deliberately conservative. Every native call needs `--confirm-native run-native-claude`. Any member of the `auth`, `auto-mode`, `daemon`, `gateway`, `import`, `install`, `mcp`, `plugin`, `plugins`, `project`, `remote-control`, `self-hosted-runner`, `setup-token`, `stop`/`kill`, `respawn`, `rm`, or `update`/`upgrade` command families also needs `--confirm-mutation mutate-claude-state`, even when a particular subcommand is observational. Stateful flags such as `--worktree`, `--resume`, `--tools`, and `--plugin-dir` trigger that same conservative mutation gate. Cloud/network surfaces need `--confirm-cloud-review upload-and-billing`. Permission-authorizing flags need `--confirm-dangerous-permissions bypass-host-safety`; for Claude Code 2.1.260, native permission modes `acceptEdits`, `auto`, `bypassPermissions`, and `manual` are treated as authorizing, while `dontAsk` and `plan` are not. These gates are cumulative.
+The native escape hatch is deliberately conservative. Every native call needs `--confirm-native run-native-claude`. Any member of the `auth`, `auto-mode`, `daemon`, `gateway`, `import`, `install`, `mcp`, `plugin`, `plugins`, `project`, `remote-control`, `self-hosted-runner`, `setup-token`, `stop`/`kill`, `respawn`, `rm`, or `update`/`upgrade` command families also needs `--confirm-mutation mutate-claude-state`, even when a particular subcommand is observational. Stateful flags such as `--worktree`, `--resume`, `--tools`, and `--plugin-dir` trigger that same conservative mutation gate. Cloud/network surfaces need `--confirm-cloud-review upload-and-billing`. Permission-authorizing flags need `--confirm-dangerous-permissions bypass-host-safety`; according to Anthropic's [permission-mode documentation](https://code.claude.com/docs/en/permissions), `acceptEdits`, `auto`, `bypassPermissions`, and `manual` are treated as authorizing, while `dontAsk` and `plan` are not. These gates are cumulative.
 
 Native transport is finite-command argv/stdin passthrough, not universal protocol emulation. The wrapper refuses `--post` and live stream-JSON surfaces (`--input-format stream-json`, `--output-format stream-json`, `--forward-subagent-text`, `--include-hook-events`, `--include-partial-messages`, and `--replay-user-messages`). Run Claude directly for those deliberately excluded surfaces.
 
@@ -86,7 +86,7 @@ Native transport is finite-command argv/stdin passthrough, not universal protoco
 | `--remote-control` | Native + cloud/mutation confirmation / Direct | Persistent interactive session and service connection |
 | `--remote-control-session-name-prefix` | Native / Direct | Remote Control tuning |
 | `--replay-user-messages` | Direct / Deferred | Requires live duplex stream-JSON |
-| `--restricted` | Bridge-owned | Required on the default safe profile and optional guarded write; omitted from the incompatible dangerous write and native-customization profiles |
+| `--restricted` | Bridge-owned | Used only by explicit guarded-write mode for its filesystem boundary; omitted from ordinary read-only calls. On one tested OAuth account, it triggered a weekly-limit error while an otherwise identical request without it succeeded. This is an observed configuration-specific behavior, not a claim about every OAuth account or Anthropic's internal quota rules. It is incompatible with dangerous write. |
 | `-r`, `--resume` | Guarded / Native + mutation confirmation | Full canonical UUID only in guarded mode |
 | `--safe-mode` | Bridge-owned | Default reads and both write profiles; native local-customization profile omits it explicitly; enterprise-managed policy can still apply |
 | `--session-id` | Native + mutation confirmation | Caller-selected UUID is outside guarded state ownership |
@@ -134,7 +134,7 @@ Native transport is finite-command argv/stdin passthrough, not universal protoco
 
 The audit recursively walks every command advertised through a standard `Commands:` section, plus the known feature-gated `daemon`, `remote-control`, and `self-hosted-runner` roots. Each discovered surface and every advertised option must occur on its exact ledger row. “Native” means exact argv passthrough after the applicable mutation, cloud, or dangerous confirmation; it does not mean that a Codex skill selects the option automatically.
 
-| Exact surface | Advertised options in Claude Code 2.1.260 | Coverage |
+| Exact surface | Advertised options in Claude Code 2.1.281 | Coverage |
 |---|---|---|
 | `claude agents` | `--add-dir`, `--agent`, `--all`, `--allow-dangerously-skip-permissions`, `--cwd`, `--dangerously-skip-permissions`, `--effort`, `--json`, `--mcp-config`, `--model`, `--permission-mode`, `--plugin-dir`, `--restricted`, `--setting-sources`, `--settings`, `--strict-mcp-config` | Guarded subset: `--json --all --cwd`; remainder native |
 | `claude attach` | None | Guarded exact-ID TTY attach |
@@ -166,29 +166,29 @@ The audit recursively walks every command advertised through a standard `Command
 | `claude mcp serve` | `--debug`, `--verbose`, `-d` | Native tool-server surface, conservatively family mutation-gated; not a Claude answer endpoint |
 | `claude plugin` | None | Native mutation |
 | `claude plugin details` | None | Native read, conservatively family mutation-gated |
-| `claude plugin disable` | `--all`, `--scope`, `-a`, `-s` | Native mutation |
-| `claude plugin enable` | `--scope`, `-s` | Native mutation |
-| `claude plugin eval` | `--ablation`, `--allow-tools`, `--case`, `--debug-file`, `--eval-dir`, `--json`, `--judge-model`, `--keep-temp`, `--max-cost-usd`, `--mocks`, `--model`, `--no-publish`, `--no-scaffold`, `--output-dir`, `--publish-report`, `--report`, `--runs`, `--scaffold`, `--tag`, `--threshold`, `--verbose` | Native billed/mutation surface |
+| `claude plugin disable` | `--all`, `--json`, `--scope`, `-a`, `-s` | Native mutation |
+| `claude plugin enable` | `--json`, `--scope`, `-s` | Native mutation |
+| `claude plugin eval` | `--ablation`, `--allow-real-servers`, `--allow-tools`, `--case`, `--concurrency`, `--debug-file`, `--eval-dir`, `--json`, `--judge-model`, `--keep-temp`, `--max-cost-usd`, `--mocks`, `--model`, `--no-publish`, `--no-scaffold`, `--output-dir`, `--publish-report`, `--report`, `--runs`, `--scaffold`, `--tag`, `--threshold`, `--trust-plugin`, `--verbose`, `-j` | Native billed/mutation surface |
 | `claude plugin eval init` | `--bare`, `--eval-dir`, `--interactive`, `-i` | Native mutation |
 | `claude plugin init` | `--author`, `--author-email`, `--description`, `--force`, `--with`, `-f` | Native mutation |
-| `claude plugin install` | `--config`, `--scope`, `--yes`, `-s`, `-y` | Native third-party-code mutation |
+| `claude plugin install` | `--accept-command`, `--config`, `--json`, `--registry`, `--scope`, `--yes`, `-s`, `-y` | Native third-party-code mutation |
 | `claude plugin list` | `--available`, `--json` | Native read/network surface, conservatively family mutation-gated |
 | `claude plugin marketplace` | None | Native mutation/read |
-| `claude plugin marketplace add` | `--scope`, `--sparse` | Native third-party-code mutation |
+| `claude plugin marketplace add` | `--claudeai`, `--scope`, `--sparse` | Native third-party-code mutation |
 | `claude plugin marketplace list` | `--json` | Native read, conservatively family mutation-gated |
 | `claude plugin marketplace remove` | `--scope` | Native mutation |
 | `claude plugin marketplace update` | None | Native network/mutation |
 | `claude plugin prune` | `--dry-run`, `--scope`, `--yes`, `-s`, `-y` | Native mutation |
 | `claude plugin tag` | `--dry-run`, `--force`, `--message`, `--push`, `--remote`, `-f`, `-m` | Native Git/network mutation |
-| `claude plugin uninstall` | `--keep-data`, `--prune`, `--scope`, `--yes`, `-s`, `-y` | Native mutation |
-| `claude plugin update` | `--scope`, `--yes`, `-s`, `-y` | Native network/mutation |
+| `claude plugin uninstall` | `--json`, `--keep-data`, `--prune`, `--scope`, `--yes`, `-s`, `-y` | Native mutation |
+| `claude plugin update` | `--accept-command`, `--json`, `--scope`, `--yes`, `-s`, `-y` | Native network/mutation |
 | `claude plugin validate` | `--json`, `--strict` | Native read, conservatively family mutation-gated |
 | `claude project` | None | Native project-state surface, conservatively family mutation-gated |
 | `claude project purge` | `--all`, `--dry-run`, `--interactive`, `--yes`, `-i`, `-y` | Native destructive mutation |
 | `claude remote-control` | `--capacity`, `--continue`, `--create-session-in-dir`, `--debug-file`, `--name`, `--no-create-session-in-dir`, `--permission-mode`, `--remote-control-session-name-prefix`, `--session-id`, `--spawn`, `--verbose`, `-c`, `-v` | Native cloud/mutation; feature-gated |
 | `claude respawn` | None | Guarded exact stopped-ID respawn; native use is mutation-gated |
-| `claude rm` | `--discard-unpushed` | Guarded terminal-ID removal; native use is mutation-gated and the guarded bridge never passes `--discard-unpushed` |
-| `claude self-hosted-runner` | `--api-url`, `--base-dir`, `--capacity`, `--client-label`, `--configure-git`, `--confine-repo-settings`, `--debug-token-dir`, `--defer-shutdown-max-min`, `--drain-grace-sec`, `--drain-wait-sec`, `--environment-secret-file`, `--exec-path`, `--exit-if-unused-min`, `--git-host-rewrite`, `--git-ssh-rewrite`, `--health-port`, `--hooks-dir`, `--kill-session-after-min`, `--lock-to-account`, `--log-file`, `--log-level`, `--post-session-hook-timeout-sec`, `--proxy-authorization-command`, `--proxy-authorization-file`, `--push-outcome-on-release`, `--release-idle-session-min`, `--retire-at`, `--session-stop-grace-sec`, `--startup-timeout-min`, `--trust-workspace`, `--use-anthropic-git-proxy` | Native cloud/mutation; feature-gated |
+| `claude rm` | `--discard-unpushed`, `--force-remove-worktree` | Guarded terminal-ID removal; native use is mutation-gated and the guarded bridge never passes either destructive option |
+| `claude self-hosted-runner` | `--api-url`, `--base-dir`, `--capacity`, `--client-label`, `--configure-git`, `--confine-repo-settings`, `--debug-token-dir`, `--defer-shutdown-max-min`, `--drain-grace-sec`, `--drain-marker-file`, `--drain-wait-sec`, `--environment-secret-file`, `--exec-path`, `--exit-if-unused-min`, `--git-host-rewrite`, `--git-ssh-rewrite`, `--health-port`, `--hooks-dir`, `--host-config-snapshot`, `--kill-session-after-min`, `--lock-to-account`, `--log-file`, `--log-level`, `--post-session-hook-timeout-sec`, `--proxy-authorization-command`, `--proxy-authorization-file`, `--push-outcome-on-release`, `--release-idle-session-min`, `--remove-session-state`, `--retire-at`, `--session-stop-grace-sec`, `--startup-timeout-min`, `--trust-workspace`, `--use-anthropic-git-proxy` | Native cloud/mutation; feature-gated |
 | `claude setup-token` | None | Native credential mutation/direct |
 | `claude stop` | None | Guarded exact-ID stop; native use is mutation-gated |
 | `claude ultrareview` | `--json`, `--no-post`, `--post`, `--timeout` | Guarded billed upload with forced `--no-post`; `--post` rejected globally |

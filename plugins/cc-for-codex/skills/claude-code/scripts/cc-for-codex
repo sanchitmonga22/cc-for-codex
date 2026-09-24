@@ -14,7 +14,7 @@ case "$0" in
   *) fail "invoke this launcher by path, not through an unverified PATH entry" ;;
 esac
 
-launcher_dir=$(CDPATH= cd -P "$launcher_dir" 2>/dev/null && pwd -P) || \
+launcher_dir=$(CDPATH='' cd -P "$launcher_dir" 2>/dev/null && pwd -P) || \
   fail "cannot resolve the installed launcher directory"
 working_dir=$(pwd -P) || fail "cannot resolve the current working directory"
 
@@ -39,7 +39,7 @@ while :; do
           /*) gitdir_path=$gitdir_value ;;
           *) gitdir_path=$cursor/$gitdir_value ;;
         esac
-        gitdir_path=$(CDPATH= cd -P "$gitdir_path" 2>/dev/null && pwd -P) || gitdir_path=
+        gitdir_path=$(CDPATH='' cd -P "$gitdir_path" 2>/dev/null && pwd -P) || gitdir_path=
         if [ -n "$gitdir_path" ] && [ -f "$gitdir_path/commondir" ] && \
            [ ! -L "$gitdir_path/commondir" ]; then
           common_value=
@@ -48,7 +48,7 @@ while :; do
             /*) common_path=$common_value ;;
             *) common_path=$gitdir_path/$common_value ;;
           esac
-          common_path=$(CDPATH= cd -P "$common_path" 2>/dev/null && pwd -P) || common_path=
+          common_path=$(CDPATH='' cd -P "$common_path" 2>/dev/null && pwd -P) || common_path=
           case "$common_path" in
             */.git) linked_root=${common_path%/.git} ;;
           esac
@@ -113,7 +113,7 @@ resolve_node_candidate() {
     esac
     target_dir=${resolved_node%/*}
     target_name=${resolved_node##*/}
-    target_dir=$(CDPATH= cd -P "$target_dir" 2>/dev/null && pwd -P) || return 1
+    target_dir=$(CDPATH='' cd -P "$target_dir" 2>/dev/null && pwd -P) || return 1
     resolved_node=$target_dir/$target_name
   done
   [ -f "$resolved_node" ] && [ -x "$resolved_node" ]
@@ -127,15 +127,15 @@ for path_entry in ${PATH-}; do
     /*) ;;
     *) IFS=:; continue ;;
   esac
-  physical_entry=$(CDPATH= cd -P "$path_entry" 2>/dev/null && pwd -P) || {
+  physical_entry=$(CDPATH='' cd -P "$path_entry" 2>/dev/null && pwd -P) || {
     IFS=:
     continue
   }
   if resolve_node_candidate "$physical_entry/node" && \
      ! is_inside_workspace "$resolved_node"; then
     IFS=$old_ifs
-    exec "$resolved_node" "$launcher_dir/cc-for-codex.mjs" "$@"
-    fail "trusted Node executable could not be started"
+    exec "$resolved_node" "$launcher_dir/cc-for-codex.mjs" "$@" || \
+      fail "trusted Node executable could not be started"
   fi
   IFS=:
 done

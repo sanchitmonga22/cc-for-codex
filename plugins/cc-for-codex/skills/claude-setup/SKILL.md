@@ -19,7 +19,13 @@ Use `doctor --full` only when the basic report is insufficient; Anthropic docume
 
 If Claude is missing or logged out, give the user the official Claude Code installation or login instructions. Do not install, update, authenticate, create tokens, change PATH, or edit Claude settings unless the user explicitly asks for that separate mutation.
 
-The guarded bridge requires a recent Claude Code CLI with the reported safety and core capabilities, including structured output, background-agent JSON plus stop control, worktrees, and resume. If any are missing, recommend upgrading rather than silently dropping a required flag.
+The default Opus 5.5 workflow requires Claude Code 2.1.280 or newer. `doctor`
+checks that model/CLI compatibility separately from provider usage and reports
+`liveModelCheck: not_performed`; it does not make a model request. The guarded
+bridge also requires the reported safety and core capabilities, including
+structured output, background-agent JSON plus stop control, worktrees, and
+resume. If any are missing, recommend upgrading or explicitly choosing a
+supported model rather than silently dropping a required flag.
 
 Foreground `-p --worktree` delegation skips Claude's trust prompt. Before a background/non-`-p` worktree write, the user must run Claude interactively in that repository and personally accept the prompt; do not automate that consent.
 

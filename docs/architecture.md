@@ -33,6 +33,12 @@ reference/codex-plugin-cc/              Ignored local upstream comparison clone
 
 The executable implementation lives inside `skills/claude-code/scripts/`, so the primary skill remains self-contained. The plugin-level shell launcher delegates to that package-local launcher, which resolves a non-workspace Node binary before importing the internal `.mjs` entrypoint; there is one JavaScript behavior path to test.
 
+Foreground provider failures remain fail-closed: only recognized categories
+(such as authentication, model availability, rate limit, and network/service
+failure) may appear in the bridge error. Raw stdout/stderr is withheld. A local
+readiness check is deliberately separate from live provider/model availability,
+and a rate limit never triggers a retry loop or implicit model fallback.
+
 ## Execution paths
 
 ### Guarded foreground call
@@ -51,7 +57,7 @@ Codex skill
   -> sanitize and render result/session metadata
 ```
 
-The read profile fixes the relevant Claude options. User/project Claude customizations, MCP, Chrome, Bash, network tools, edits, subagents, and interactive approvals are unavailable.
+The read profile fixes the relevant Claude options. User/project Claude customizations, MCP, Chrome, Bash, network tools, edits, subagents, and interactive approvals are unavailable. It does not use evaluation-harness `--restricted`: in one tested OAuth configuration that flag caused a weekly-limit error while the same call without it succeeded. The explicit read-only tools are not a filesystem sandbox and may read paths Claude's ordinary permissions allow outside the checkout. Reviews disable file tools entirely.
 
 ### Review
 
