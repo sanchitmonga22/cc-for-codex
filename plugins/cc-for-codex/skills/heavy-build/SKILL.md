@@ -46,9 +46,11 @@ command output before integrating anything.
    include them in the implementation.
 3. For Codex execution, work on a dedicated branch when the approved plan or
    repository policy calls for one. For Claude execution, the bridge creates a
-   verified worktree branch from the plan's `BASE`; do not create a second
-   concurrent writer branch. Never commit directly to a protected/default
-   branch without explicit permission.
+   verified worktree branch from the current local `HEAD`, not the plan's
+   `BASE`. Require `git rev-parse HEAD` to equal the recorded `BASE` commit
+   before delegation; otherwise select the intended checkout/ref first or
+   return to planning. Do not create a second concurrent writer branch. Never
+   commit directly to a protected/default branch without explicit permission.
 4. Record the plan path and implementation start in the deviation log.
 
 ## Implement within scope

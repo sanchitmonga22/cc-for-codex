@@ -2,6 +2,14 @@
 
 All notable changes follow semantic versioning.
 
+## 0.2.6 - 2026-09-24
+
+- Accept a Claude-created Git worktree that remains locked after a completed write session when its canonical path, registration, branch, exact base commit, and non-prunable state all verify. Preserve the lock and report it; never unlock or delete the worktree automatically. A still-live lock owner now prevents foreground success, and review of a generated worktree refuses active or ambiguous Claude background sessions.
+- Add regression tests using a lock reason recorded from Claude Code 2.1.281, including completed/active foreground writes, foreign and malformed locks, missing locked paths, background lifecycle checks, and recovery.
+- Keep full-execution worktrees on their launch `HEAD`: explicitly prohibit Claude commits/branch changes and report unexpected commits as a recoverable HEAD-drift failure. Correct heavy-build's BASE-versus-local-HEAD guidance.
+- Preserve and report a private transcript snapshot if the import summary fails; bound copies to each source file's opening size so a concurrently appended JSONL transcript can be archived as a point-in-time snapshot. Keep precise turn-limit errors ahead of provider-string classification.
+- Live-check consultation, structured review, file-only Opus write delegation, and transcript-preserving import against a disposable repository. Guarded write remains subject to the configured Claude account's restricted-mode quota.
+
 ## 0.2.5 - 2026-09-24
 
 - Restore live read-only Claude Code calls by removing evaluation-harness `--restricted` from ordinary ask/review launches; on a tested OAuth account, that flag alone produced a weekly-limit rejection while the same Opus 5.5 request succeeded without it. The explicit guarded-write profile retains its filesystem boundary.

@@ -339,22 +339,30 @@ export async function ask(options) {
     defaultMaxTurns: 12,
     persistent,
   }, capabilityHelp);
-  const run = await runProcess(binary, args, {
-    cwd,
-    env: claudeEnvironment,
-    input: prompt,
-    timeoutMs: operationTimeoutMs(options, 900),
-    allowNonZero: true,
-    sanitizeOutput: false,
-  });
-  return {
-    ...parseClaudeRun(run, "Claude Code", { persistent }),
-    ...(transcriptArchive ? { transcriptArchive } : {}),
-    guardrails: {
-      outerTimeout: true,
-      maxTurns: true,
-    },
-  };
+  try {
+    const run = await runProcess(binary, args, {
+      cwd,
+      env: claudeEnvironment,
+      input: prompt,
+      timeoutMs: operationTimeoutMs(options, 900),
+      allowNonZero: true,
+      sanitizeOutput: false,
+    });
+    return {
+      ...parseClaudeRun(run, "Claude Code", { persistent }),
+      ...(transcriptArchive ? { transcriptArchive } : {}),
+      guardrails: {
+        outerTimeout: true,
+        maxTurns: true,
+      },
+    };
+  } catch (error) {
+    if (!transcriptArchive) throw error;
+    throw new BridgeError(
+      `${error.message} The private transcript snapshot was retained at ${safeText(transcriptArchive.archiveDirectory)}; inspect it before retrying or removing it.`,
+      { exitCode: error?.exitCode ?? 1 },
+    );
+  }
 }
 
 export async function resume(options) {
@@ -406,7 +414,7 @@ export async function review(options) {
   const cwd = canonicalDirectory(options.cwd);
   const binary = resolveExecutable(options.claudeBin, cwd);
   const profile = options.profile || "safe";
-  const scope = await collectReviewContext(cwd, options);
+  const scope = await collectReviewContext(cwd, options, binary);
   const capabilityHelp = await ensureProfile(
     binary,
     cwd,
@@ -673,7 +681,7 @@ export async function delegate(options) {
 
   const fixedInstruction = write
     ? writeExecution === "full"
-      ? "You are working for Codex in an isolated Claude-created git worktree with explicit full-execution authorization. Make only the requested changes. You may run the repository's validation commands with Bash, but do not access secrets or unrelated host paths, change host configuration, merge, push, publish, or delete the worktree. Read AGENTS.md and CLAUDE.md explicitly when present. At the end, report changed files, commands and real outputs, what remains unverified, the worktree path, and the branch name."
+      ? "You are working for Codex in an isolated Claude-created git worktree with explicit full-execution authorization. Make only the requested changes. You may run the repository's validation commands with Bash, but do not commit, rebase, switch branches, alter Git worktree state, access secrets or unrelated host paths, change host configuration, merge, push, publish, or delete the worktree. Read AGENTS.md and CLAUDE.md explicitly when present. At the end, report changed files, commands and real outputs, what remains unverified, the worktree path, and the branch name."
       : "You are working for Codex in an isolated Claude-created git worktree. Make only the requested changes. Never merge, push, publish, delete the worktree, change host configuration, or access the network. Do not run repository code or shell commands; Codex will validate separately. Read AGENTS.md and CLAUDE.md explicitly when present. At the end, report changed files, what remains unverified, the worktree path, and the branch name."
     : "You are a read-only investigator working for Codex. Analyze the request and repository, but do not edit files, run commands, access the network, or delegate. Read AGENTS.md and CLAUDE.md explicitly when present. Return concrete findings and validation advice.";
   const prompt = wrapUserPrompt(fixedInstruction, options.prompt);
@@ -795,6 +803,7 @@ export async function delegate(options) {
       worktreeName,
       operationTimeoutMs(options, 1_800, 60_000),
       writeBaseOid,
+      { requireInactiveOwner: true },
     );
   } catch (error) {
     throw await writeRecoveryError(error, writeRoot, worktreeName, options, writeBaseOid);
@@ -1455,9 +1464,10 @@ function backgroundTuningArgs(options) {
   return args;
 }
 
-async function collectReviewContext(cwd, options) {
+async function collectReviewContext(cwd, options, binary) {
   const gitTimeout = () => operationTimeoutMs(options, 1_200, 60_000);
   const root = await gitRoot(cwd, gitTimeout());
+  await guardActiveClaudeWorktreeSession(binary, root, gitTimeout());
   await assertRepositoryTreeSafeForClaude(root, gitTimeout(), "Review", options.deadlineAt);
   const paths = normalizeReviewPaths(root, options.paths || []);
   const pathArgs = paths.length ? paths : ["."];
@@ -1691,7 +1701,12 @@ function parseClaudeRun(run, label, { persistent = false } = {}) {
     terminalReason === "max_turns" ||
     terminalReason === "max_budget_usd";
   if (failed) {
-    const reason = classifyClaudeFailure(payload, run, {
+    const preciseStop = new Set([
+      "error_max_turns", "error_max_budget_usd", "error_max_structured_output_retries",
+    ]).has(subtype) || terminalReason === "max_turns" || terminalReason === "max_budget_usd"
+      ? claudeFailureReason(subtype, terminalReason)
+      : undefined;
+    const reason = preciseStop || classifyClaudeFailure(payload, run, {
       includeResult: payload.is_error === true || rawSubtype?.startsWith("error_"),
     }) ||
       claudeFailureReason(subtype, terminalReason) ||
@@ -1754,7 +1769,7 @@ function classifyClaudeFailure(payload, run, { includeResult = false, includeStd
   if (/model.{0,100}(?:not found|unavailable|not available|does not exist)|(?:not found|unavailable|not available).{0,100}model/u.test(text)) {
     return "requested model is unavailable to this account or provider";
   }
-  if (/overloaded|server error|internal server|service unavailable|\b5\d\d\b/u.test(text)) {
+  if (/overloaded|server error|internal server|service unavailable|\b(?:http(?:\/[0-9.]+)?\s+|status(?:\s+code)?\s*[:=]?\s*)5\d\d\b/u.test(text)) {
     return "Claude service error";
   }
   if (/network|fetch failed|connection|\benotfound\b|\beconn(?:refused|reset|timeout)\b|\betimedout\b|dns lookup/u.test(text)) {
@@ -1818,6 +1833,26 @@ async function getAgents(binary, cwd, all, options = {}) {
   const parsed = parseJson(run.stdout, "Claude agents");
   if (!Array.isArray(parsed)) throw new BridgeError("Claude agents returned a non-array JSON value.");
   return parsed.map((entry) => sanitizeAgent(entry)).filter(Boolean);
+}
+
+async function guardActiveClaudeWorktreeSession(binary, root, timeoutMs) {
+  const name = basename(root);
+  if (!isGeneratedClaudeWorktreeName(name) ||
+    basename(dirname(root)) !== "worktrees" ||
+    basename(dirname(dirname(root))) !== ".claude") return;
+  let agents;
+  try {
+    agents = await getAgents(binary, root, true, { global: true, timeoutMs });
+  } catch (error) {
+    throw new BridgeError(
+      `Cannot verify whether Claude is still editing this worktree: ${error.message}`,
+    );
+  }
+  if (agents.some((entry) => agentInsideCwd(entry, root) && entry[TERMINAL_AGENT_SIGNALS_SAFE] !== true)) {
+    throw new BridgeError(
+      "Claude has an active or ambiguous background session in this worktree; stop or finish it before reviewing the diff.",
+    );
+  }
 }
 
 async function guardConcurrentResume(binary, cwd, resumeId, confirmation, timeoutMs = 30_000) {
@@ -2206,9 +2241,45 @@ async function isRegisteredLinkedWorktree(
     .filter(Boolean)
     .map((block) => block.split("\0"))
     .filter((fields) => fields.includes(`worktree ${root}`));
-  return registrations.length === 1 && !registrations[0].some(
-    (field) => field === "prunable" || field.startsWith("prunable ") || field === "locked" || field.startsWith("locked "),
-  );
+  if (registrations.length !== 1) return false;
+  const fields = registrations[0];
+  if (fields.some((field) => field === "prunable" || field.startsWith("prunable "))) return false;
+  const lock = fields.find((field) => field === "locked" || field.startsWith("locked "));
+  if (!lock) return true;
+  // Claude may retain its own lock after a completed foreground session.
+  // Other locks (including Git's in-progress "initializing" lock) remain
+  // excluded, and an active Claude writer must not be reviewed mid-edit.
+  if (basename(dirname(root)) !== "worktrees" || basename(dirname(dirname(root))) !== ".claude") return false;
+  const pid = claudeSessionLockPid(lock, basename(root));
+  if (pid === undefined) return false;
+  if (isLiveProcessId(pid)) {
+    throw new BridgeError(
+      `Claude worktree lock owner PID ${pid} appears active. Do not review this checkout until the writer finishes; if the PID was reused, inspect Claude sessions and the Git lock manually.`,
+    );
+  }
+  return true;
+}
+
+function claudeSessionLockPid(lockField, name) {
+  if (!isGeneratedClaudeWorktreeName(name)) return undefined;
+  const prefix = `locked claude session ${name} (pid `;
+  if (!lockField?.startsWith(prefix)) return undefined;
+  const match = /^([1-9][0-9]*) start [^)\r\n]+\)$/u.exec(lockField.slice(prefix.length));
+  const pid = Number(match?.[1]);
+  return Number.isSafeInteger(pid) && pid <= 2_147_483_647 ? pid : undefined;
+}
+
+function isGeneratedClaudeWorktreeName(name) {
+  return /^ccfc-[0-9]{14}-[0-9a-f]{6}$/u.test(name);
+}
+
+function isLiveProcessId(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return error?.code !== "ESRCH";
+  }
 }
 
 async function isRegisteredSubmodule(root, gitDirectory, timeoutForStep) {
@@ -3091,7 +3162,7 @@ function gitSafetyEnvironment() {
   return env;
 }
 
-async function findGeneratedWorktree(root, name, timeoutMs = 60_000, expectedHead) {
+async function findGeneratedWorktree(root, name, timeoutMs = 60_000, expectedHead, options = {}) {
   const run = await runGit(
     ["worktree", "list", "--porcelain", "-z"],
     root,
@@ -3115,7 +3186,9 @@ async function findGeneratedWorktree(root, name, timeoutMs = 60_000, expectedHea
         ?.slice("HEAD ".length)
         .toLowerCase();
       const prunable = fields.some((field) => field === "prunable" || field.startsWith("prunable "));
-      const locked = fields.some((field) => field === "locked" || field.startsWith("locked "));
+      const lock = fields.find((field) => field === "locked" || field.startsWith("locked "));
+      const locked = Boolean(lock);
+      const lockOwnerPid = locked ? claudeSessionLockPid(lock, name) : undefined;
       return path
         ? {
             name,
@@ -3124,6 +3197,8 @@ async function findGeneratedWorktree(root, name, timeoutMs = 60_000, expectedHea
             head,
             prunable,
             locked,
+            acceptedLock: !locked || lockOwnerPid !== undefined,
+            lockOwnerPid,
           }
         : undefined;
     })
@@ -3133,12 +3208,21 @@ async function findGeneratedWorktree(root, name, timeoutMs = 60_000, expectedHea
         entry.path === expectedPath &&
         entry.branch === expectedBranch &&
         entry.prunable === false &&
-        entry.locked === false &&
-        (!expectedHead || entry.head === expectedHead),
+        entry.acceptedLock,
     );
   if (candidates.length !== 1) {
     throw new BridgeError(
       `Claude completed, but the generated worktree '${name}' could not be uniquely verified. Run 'git worktree list' before retrying or cleaning up.`,
+    );
+  }
+  if (expectedHead && candidates[0].head !== expectedHead) {
+    throw new BridgeError(
+      `Claude changed the generated worktree HEAD from its launch base. Inspect its commits and branch manually; the bridge will not certify or integrate it automatically.`,
+    );
+  }
+  if (options.requireInactiveOwner && candidates[0].lockOwnerPid !== undefined && isLiveProcessId(candidates[0].lockOwnerPid)) {
+    throw new BridgeError(
+      `Claude returned, but this worktree lock owner PID ${candidates[0].lockOwnerPid} appears active. Do not review or integrate it until the writer has finished.`,
     );
   }
   let worktreeStat;
@@ -3164,7 +3248,8 @@ async function findGeneratedWorktree(root, name, timeoutMs = 60_000, expectedHea
       `Claude completed, but the generated worktree '${name}' is not a canonical worktree directory. Run 'git worktree list' before retrying or cleaning up.`,
     );
   }
-  return { ...candidates[0], path: safeText(candidates[0].path) };
+  const { acceptedLock, lockOwnerPid, ...verified } = candidates[0];
+  return { ...verified, path: safeText(verified.path) };
 }
 
 async function writeRecoveryError(error, root, name, options, expectedHead, backgroundJobId) {

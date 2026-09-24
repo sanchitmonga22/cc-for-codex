@@ -26,10 +26,10 @@ https://github.com/user-attachments/assets/bdba3033-1279-4283-a587-0cc50fa43b2f
 [Download the original recording](docs/assets/cc-for-codex-workflow.mp4)
 
 <details>
-<summary>Historical plugin-browser screenshot from v0.2.0 — the current v0.2.5 package has ten skills</summary>
+<summary>Historical plugin-browser screenshot from v0.2.0 — the current v0.2.6 package has ten skills</summary>
 
 <p align="center">
-  <a href="docs/assets/cc-for-codex-plugin-store.png"><img src="docs/assets/cc-for-codex-plugin-store.png" alt="Historical v0.2.0 plugin browser screenshot showing the original six skills; current v0.2.5 adds four more, including Claude Import" width="800" /></a>
+  <a href="docs/assets/cc-for-codex-plugin-store.png"><img src="docs/assets/cc-for-codex-plugin-store.png" alt="Historical v0.2.0 plugin browser screenshot showing the original six skills; current v0.2.6 adds four more, including Claude Import" width="800" /></a>
 </p>
 
 </details>
@@ -45,8 +45,8 @@ Do not modify project code, credentials, unrelated settings, or unrelated plugin
 
 1. Run `codex --version` and confirm the Codex CLI is available.
 2. Inspect `codex plugin marketplace list --json`. Locate the entry named `cc-for-codex` and require its `marketplaceSource.source` to be `https://github.com/sanchitmonga22/cc-for-codex.git` (the same URL without `.git` is also equivalent). If it is absent, run `codex plugin marketplace add sanchitmonga22/cc-for-codex --ref main --json`. If the name exists with any other source, stop and ask me before changing it. If the source matches, run `codex plugin marketplace upgrade cc-for-codex --json`.
-3. Inspect `codex plugin list --json`. If `cc-for-codex@cc-for-codex` is absent or is installed below semver `0.2.5`, run `codex plugin add cc-for-codex@cc-for-codex --json` to install or upgrade it from the refreshed marketplace. Do not remove the existing plugin. If Codex reports that it cannot upgrade in place, stop and report that result before changing the installation.
-4. Inspect `codex plugin list --json` again. Require the exact plugin ID `cc-for-codex@cc-for-codex`, with `installed: true`, `enabled: true`, and version `0.2.5` or newer. Use only that entry's reported `source.path`; do not guess or search for a cache directory. Change directory to that exact path before the next steps.
+3. Inspect `codex plugin list --json`. If `cc-for-codex@cc-for-codex` is absent or is installed below semver `0.2.6`, run `codex plugin add cc-for-codex@cc-for-codex --json` to install or upgrade it from the refreshed marketplace. Do not remove the existing plugin. If Codex reports that it cannot upgrade in place, stop and report that result before changing the installation.
+4. Inspect `codex plugin list --json` again. Require the exact plugin ID `cc-for-codex@cc-for-codex`, with `installed: true`, `enabled: true`, and version `0.2.6` or newer. Use only that entry's reported `source.path`; do not guess or search for a cache directory. Change directory to that exact path before the next steps.
 5. From that verified source path, run `node scripts/install-global-workflow.mjs --check`, report the absolute targets, then run it with `--apply`. This required step may append only the marked blocks to global `CLAUDE.md` and `AGENTS.md`; if legacy role text is reported, stop and ask before using `--allow-conflicts`.
 6. Run `scripts/cc-for-codex doctor --json`. Confirm that Claude Code is installed, authenticated, and reports the required guarded capabilities. Do not print email addresses, tokens, organization IDs, settings, environment variables, or unrelated plugin details.
 7. I authorize exactly one minimal Claude model request for a live read-only smoke test, which may count against my Anthropic plan or API billing. Run the verified source path's runner with: `ask --model haiku --max-turns 1 --text-only --prompt "Reply with exactly: CC for Codex is connected."` Do not enable native mode, MCP, Chrome, shell tools, edits, background execution, or dangerous permissions.
@@ -265,7 +265,7 @@ The default read-only invocation is not a naked `claude -p` call. Print mode ski
 - The ordinary read-only profile does not use Claude's evaluation-harness `--restricted` flag. On a tested OAuth account that flag alone caused a weekly-limit rejection while the same Opus 5.5 call succeeded without it. The explicit tool list prevents edits and command execution, but it is not a filesystem sandbox: read tools may access paths permitted by Claude outside the checkout. Reviews disable file tools entirely.
 - Reviews construct their selected git context locally, require every explicit path to match repository evidence, reject hidden `assume-unchanged`/`skip-worktree` entries, disable Claude's file tools, and require a strict non-empty JSON findings schema. Untracked contents, binary bytes, submodules, and truncated diff tails are explicitly reported as partial evidence; source control characters are represented visibly rather than deleted.
 - Git calls clear repository-selection environment overrides, disable optional index locks, use a timestamp-preserving temporary index snapshot for diffing, authenticate normal/linked-worktree/submodule `.git` markers, reject common-directory or alternate-object-store redirection, reject repository-controlled include/includeIf configuration, disable fsmonitor/hooks/textconv, and force submodule recursion off. Before every automatic model launch, the bridge recursively preflights initialized submodules and rejects partial/promisor/shared-object repositories, executable diff configuration, or tracked Git content filters at any level. Write mode also rejects sparse checkouts; ultrareview receives the same Git-startup hardening.
-- Write delegation needs explicit permission and a generated `worktree-<name>` branch based on local `HEAD`; `.claude/worktrees` ancestry must be an in-repository real directory, and the returned path, branch, and base commit are independently verified. Claude gets only `Read`, `Glob`, `Grep`, `Edit`, and `Write`, never Bash or WebFetch. A failed foreground or background write reports the deterministic/verified recovery location; every background failure preserves a valid printed job ID and stop guidance.
+- Write delegation needs explicit permission and a generated `worktree-<name>` branch based on local `HEAD`; `.claude/worktrees` ancestry must be an in-repository real directory, and the returned path, branch, and exact base commit are independently verified. Default file-only execution gives Claude `Read`, `Glob`, `Grep`, `Edit`, and `Write`, never Bash or WebFetch; the separately confirmed full-execution mode adds Bash. Claude may leave its generated worktree locked after exit; the bridge preserves that lock, rejects foreign locks, and refuses to certify a foreground write while the lock owner appears live. A review of that worktree also checks for active or ambiguous Claude background sessions. If Claude commits inside the worktree, exact-base verification fails closed and reports the recovery location for manual inspection. A failed foreground or background write reports the deterministic/verified recovery location; every background failure preserves a valid printed job ID and stop guidance.
 - As requested for this project, write mode defaults to Claude's `--dangerously-skip-permissions` so delegated file edits do not pause for approvals. The skill automatically includes the separate `--confirm-dangerous-permissions bypass-host-safety` token after the user has given standing authorization, so it need not ask again within that task. This mode is incompatible with `--restricted`; Claude can refuse it under managed policy, when run as root/sudo outside a recognized sandbox, or for `--bg` until its one-time interactive responsibility dialog has been accepted. This is not host isolation: Edit/Write can reach outside the worktree and managed policy hooks may still execute. Use `--write-permissions guarded` (or `CC_FOR_CODEX_WRITE_PERMISSIONS=guarded`) for zero-prompt `dontAsk` + restricted + `Edit,Write` preapproval.
 - Guarded local print-mode ask/review/delegate calls have both a shared outer deadline and bounded `--max-turns`. Ultrareview has its own minute timeout but no bridge-owned turn cap. Native offers audited finite-command argv/stdin passthrough behind conservative cumulative gates; live stream-JSON protocols and `--post` are deliberately refused. Background usage and process-visible prompts, ignored-file copying, cloud upload/billing, job removal, state mutation, and native passthrough each have separate confirmation tokens.
 - Auth output is allowlisted; email, organization IDs, local project paths, tokens, settings, and environment variables are never printed.
@@ -347,12 +347,15 @@ RUNNER="plugins/cc-for-codex/scripts/cc-for-codex"
 
 The full-execution example is opt-in and dangerous: it enables Claude's Bash
 tool and bypasses Claude permission prompts inside a generated worktree. It is
-not an OS sandbox. Use it only when the user explicitly chooses Claude as the
+not an OS sandbox. The bridge requires the generated branch to remain on its
+launch `HEAD`; Claude must not commit, rebase, or switch branches. If it does,
+the bridge reports the worktree for manual inspection instead of certifying the
+write. Use full execution only when the user explicitly chooses Claude as the
 executor; otherwise GPT-6 Sol remains the heavy-build writer.
 
 `import-session` is the supported Claude-to-Codex bridge for a known Claude
-session UUID. Before its read-only summary call, it copies the exact local
-JSONL transcript and same-session sidecars to
+session UUID. Before its read-only summary call, it copies a point-in-time
+snapshot of the local JSONL transcript and same-session sidecars to
 `$CODEX_HOME/claude-session-archives/<session-id>/` (or
 `~/.codex/claude-session-archives/<session-id>/`) with user-only permissions.
 The JSON response and Codex-ready prompt include the archived transcript path,
@@ -363,13 +366,16 @@ load at once. The archive is plaintext and may contain sensitive
 content, so it remains local and should be handled accordingly. The original
 Claude session itself may still be subject to Claude's retention cleanup. If
 the local transcript is missing, ambiguous, or unsafe to copy, import stops
-before making the summary request. To revisit it later, open the returned
+before making the summary request. If the summary request fails, the private
+snapshot is retained and its path is reported for recovery. To revisit it later, open the returned
 `transcriptPath` in Codex or a text editor, or run `less '<transcriptPath>'` in
 the terminal; `archive.json` records the source UUID and transcript SHA-256.
 The UUID in the example is illustrative.
 If the Claude session is still active, add
 `--confirm-concurrent-resume may-create-copy` only after accepting Claude's
-concurrent-copy behavior.
+concurrent-copy behavior. Its archive contains the bytes present when each
+file was opened, not later activity; stop the session before importing when a
+complete historical handoff is required.
 
 An ultrareview is intentionally noisy to opt into:
 

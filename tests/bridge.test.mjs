@@ -789,6 +789,18 @@ test("foreground tuning accepts documented fallback lists and ultracode effort",
   fixture.cleanup();
 });
 
+test("unsupported model suffixes and spaced fallback lists fail before launch", () => {
+  const fixture = makeFixture();
+  const suffixed = fixture.run(["ask", "--model", "claude-opus-5-5[1m]", "hello"]);
+  assert.notEqual(suffixed.status, 0);
+  assert.match(suffixed.stderr, /model aliases or full model identifiers/u);
+  const spaced = fixture.run(["ask", "--fallback-model", "sonnet, opus", "hello"]);
+  assert.notEqual(spaced.status, 0);
+  assert.match(spaced.stderr, /model aliases or full model identifiers/u);
+  assert.equal(fixture.calls().some((entry) => entry.args.includes("-p")), false);
+  fixture.cleanup();
+});
+
 test("documented max-turns guard is enforced even when Claude help omits it", () => {
   const fixture = makeFixture({ FAKE_CLAUDE_HIDE_MAX_TURNS: "1" });
   const result = fixture.run(["ask", "--json", "hello"]);
@@ -1932,59 +1944,218 @@ test("write delegation rejects a generated worktree based on the wrong commit", 
     "change one file",
   ]);
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /failed|could not be uniquely verified/u);
+  assert.match(result.stderr, /changed the generated worktree HEAD from its launch base/u);
   assert.match(result.stderr, /worktree may remain/iu);
   fixture.cleanup();
 });
 
-test("write delegation rejects stale metadata for a missing generated worktree", () => {
-  const fixture = makeFixture({ FAKE_CLAUDE_REMOVE_WORKTREE_AFTER_CREATE: "1" });
+test("full-execution writer commit fails closed with explicit recovery guidance", () => {
+  const fixture = makeFixture({ FAKE_CLAUDE_COMMIT_WORKTREE: "1" });
   initGitRepo(fixture.cwd);
   writeFileSync(join(fixture.cwd, "README.md"), "baseline\n");
   git(fixture.cwd, ["add", "README.md"]);
-  git(fixture.cwd, ["commit", "-m", "initial"]);
-
+  git(fixture.cwd, ["commit", "-m", "baseline"]);
   const result = fixture.run([
-    "delegate",
-    "--write",
-    "--write-permissions",
-    "guarded",
-    "--confirm-write",
-    "isolated-worktree",
-    "change one file",
+    "delegate", "--write", "--execution", "full",
+    "--confirm-write", "isolated-worktree",
+    "--confirm-dangerous-permissions", "bypass-host-safety",
+    "--confirm-execution", "full-host-access", "write and validate",
   ]);
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /missing|could not be uniquely verified/u);
+  assert.match(result.stderr, /changed the generated worktree HEAD from its launch base/u);
+  assert.match(result.stderr, /Inspect its commits and branch manually/u);
+  assert.match(result.stderr, /worktree may remain/iu);
   fixture.cleanup();
 });
 
-test("background write launch failure reports its verified worktree and job id", () => {
-  const fixture = makeFixture({ FAKE_CLAUDE_BACKGROUND_EXIT_AFTER_WORKTREE: "1" });
+test("write delegation accepts Claude's locked worktree and can review it", () => {
+  const fixture = makeFixture({ FAKE_CLAUDE_LOCK_WORKTREE: "1" });
+  initGitRepo(fixture.cwd);
+  writeFileSync(join(fixture.cwd, "app.js"), "export const value = 1;\n");
+  git(fixture.cwd, ["add", "app.js"]);
+  git(fixture.cwd, ["commit", "-m", "baseline"]);
+
+  const delegated = fixture.run([
+    "delegate", "--write", "--confirm-write", "isolated-worktree",
+    "--confirm-dangerous-permissions", "bypass-host-safety", "--json", "write a file",
+  ]);
+  assert.equal(delegated.status, 0, delegated.stderr);
+  const worktree = JSON.parse(delegated.stdout).worktree;
+  assert.equal(worktree.locked, true);
+  assert.equal(worktree.prunable, false);
+  assert.equal(worktree.head, gitOutput(fixture.cwd, ["rev-parse", "HEAD"]));
+
+  writeFileSync(join(worktree.path, "app.js"), "export const value = 2;\n");
+  fixture.env.FAKE_CLAUDE_AGENTS = "[]";
+  const reviewed = fixture.run(["review", "--cwd", worktree.path, "--json"]);
+  assert.equal(reviewed.status, 0, reviewed.stderr);
+  assert.equal(JSON.parse(reviewed.stdout).scope.root, realpathSync(worktree.path));
+  fixture.cleanup();
+});
+
+test("write delegation rejects initializing, foreign, and malformed Claude locks", () => {
+  for (const reason of [
+    "initializing",
+    "administrator hold",
+    "claude session wrong-name (pid 999999 start Thu Sep 24 14:58:06 2026)",
+    "claude session {name} (pid 0 start Thu Sep 24 14:58:06 2026)",
+    "claude session {name} (pid 0007 start Thu Sep 24 14:58:06 2026)",
+    "claude session {name} (pid 2147483648 start Thu Sep 24 14:58:06 2026)",
+    "claude session {name} (pid 999999 start Thu Sep 24\r14:58:06 2026)",
+  ]) {
+    const fixture = makeFixture({
+      FAKE_CLAUDE_LOCK_WORKTREE: "1",
+      FAKE_CLAUDE_LOCK_REASON: reason,
+    });
+    initGitRepo(fixture.cwd);
+    writeFileSync(join(fixture.cwd, "app.js"), "export const value = 1;\n");
+    git(fixture.cwd, ["add", "app.js"]);
+    git(fixture.cwd, ["commit", "-m", "baseline"]);
+
+    const delegated = fixture.run([
+      "delegate", "--write", "--confirm-write", "isolated-worktree",
+      "--confirm-dangerous-permissions", "bypass-host-safety", "--json", "write a file",
+    ]);
+    assert.notEqual(delegated.status, 0, reason);
+    assert.match(delegated.stderr, /could not be uniquely verified/u);
+    const call = fixture.calls().find((entry) => entry.args.includes("--worktree"));
+    const name = call.args[call.args.indexOf("--worktree") + 1];
+    const path = join(fixture.cwd, ".claude", "worktrees", name);
+    const reviewed = fixture.run(["review", "--cwd", path, "--json"]);
+    assert.notEqual(reviewed.status, 0, reason);
+    assert.match(reviewed.stderr, /Git|worktree|registered/iu);
+    fixture.cleanup();
+  }
+});
+
+test("review refuses a Claude worktree while its writer process is active", () => {
+  const fixture = makeFixture({
+    FAKE_CLAUDE_LOCK_WORKTREE: "1",
+    FAKE_CLAUDE_LOCK_PID: String(process.pid),
+  });
+  initGitRepo(fixture.cwd);
+  writeFileSync(join(fixture.cwd, "app.js"), "export const value = 1;\n");
+  git(fixture.cwd, ["add", "app.js"]);
+  git(fixture.cwd, ["commit", "-m", "baseline"]);
+
+  const delegated = fixture.run([
+    "delegate", "--write", "--confirm-write", "isolated-worktree",
+    "--confirm-dangerous-permissions", "bypass-host-safety", "--json", "write a file",
+  ]);
+  assert.notEqual(delegated.status, 0);
+  assert.match(delegated.stderr, /lock owner PID .* appears active/u);
+  assert.match(delegated.stderr, /Verified worktree:/u);
+  const call = fixture.calls().find((entry) => entry.args.includes("--worktree"));
+  const name = call.args[call.args.indexOf("--worktree") + 1];
+  const path = join(fixture.cwd, ".claude", "worktrees", name);
+  writeFileSync(join(path, "app.js"), "export const value = 2;\n");
+  fixture.env.FAKE_CLAUDE_AGENTS = "[]";
+  const reviewed = fixture.run(["review", "--cwd", path, "--json"]);
+  assert.notEqual(reviewed.status, 0);
+  assert.match(reviewed.stderr, /Claude worktree lock owner PID .* appears active/u);
+  fixture.cleanup();
+});
+
+test("review refuses an active Claude agent even after its worktree lock owner exits", () => {
+  const fixture = makeFixture({ FAKE_CLAUDE_LOCK_WORKTREE: "1" });
+  initGitRepo(fixture.cwd);
+  writeFileSync(join(fixture.cwd, "app.js"), "export const value = 1;\n");
+  git(fixture.cwd, ["add", "app.js"]);
+  git(fixture.cwd, ["commit", "-m", "baseline"]);
+  const delegated = fixture.run([
+    "delegate", "--write", "--confirm-write", "isolated-worktree",
+    "--confirm-dangerous-permissions", "bypass-host-safety", "--json", "write a file",
+  ]);
+  assert.equal(delegated.status, 0, delegated.stderr);
+  const worktree = JSON.parse(delegated.stdout).worktree;
+  writeFileSync(join(worktree.path, "app.js"), "export const value = 2;\n");
+  fixture.env.FAKE_CLAUDE_AGENTS = JSON.stringify([{
+    id: "deadbeef", state: "working", status: "running", kind: "background",
+    cwd: worktree.path, pid: process.pid,
+  }]);
+  const active = fixture.run(["review", "--cwd", worktree.path, "--json"]);
+  assert.notEqual(active.status, 0);
+  assert.match(active.stderr, /active or ambiguous background session/u);
+  fixture.env.FAKE_CLAUDE_AGENTS = JSON.stringify([{
+    id: "deadbeef", state: "done", status: "completed", kind: "background",
+    cwd: worktree.path,
+  }]);
+  const completed = fixture.run(["review", "--cwd", worktree.path, "--json"]);
+  assert.equal(completed.status, 0, completed.stderr);
+  fixture.env.FAKE_CLAUDE_AGENTS = "{malformed";
+  const unavailable = fixture.run(["review", "--cwd", worktree.path, "--json"]);
+  assert.notEqual(unavailable.status, 0);
+  assert.match(unavailable.stderr, /Cannot verify whether Claude is still editing this worktree/u);
+  fixture.cleanup();
+});
+
+test("write delegation rejects stale metadata for a missing locked or unlocked worktree", () => {
+  for (const locked of [false, true]) {
+    const fixture = makeFixture({
+      FAKE_CLAUDE_REMOVE_WORKTREE_AFTER_CREATE: "1",
+      ...(locked ? { FAKE_CLAUDE_LOCK_WORKTREE: "1" } : {}),
+    });
+    initGitRepo(fixture.cwd);
+    writeFileSync(join(fixture.cwd, "README.md"), "baseline\n");
+    git(fixture.cwd, ["add", "README.md"]);
+    git(fixture.cwd, ["commit", "-m", "initial"]);
+
+    const result = fixture.run([
+      "delegate", "--write", "--write-permissions", "guarded",
+      "--confirm-write", "isolated-worktree", "change one file",
+    ]);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /missing|could not be uniquely verified/u);
+    fixture.cleanup();
+  }
+});
+
+test("background write launch failure reports verified unlocked or Claude-locked worktree and job id", () => {
+  for (const locked of [false, true]) {
+    const fixture = makeFixture({
+      FAKE_CLAUDE_BACKGROUND_EXIT_AFTER_WORKTREE: "1",
+      ...(locked ? { FAKE_CLAUDE_LOCK_WORKTREE: "1" } : {}),
+    });
+    initGitRepo(fixture.cwd);
+    writeFileSync(join(fixture.cwd, "README.md"), "# fixture\n");
+    git(fixture.cwd, ["add", "README.md"]);
+    git(fixture.cwd, ["commit", "-m", "initial"]);
+
+    const result = fixture.run([
+      "delegate", "--background", "--write", "--write-permissions", "guarded",
+      "--confirm-background", "unbounded-usage",
+      "--confirm-background-data", "process-visible-prompt",
+      "--confirm-write", "isolated-worktree", "change one file",
+    ]);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /Verified worktree:/u);
+    assert.match(result.stderr, /\.claude\/worktrees\/ccfc-/u);
+    assert.match(result.stderr, /branch worktree-ccfc-/u);
+    assert.match(result.stderr, /background job deadbeef/u);
+    assert.doesNotMatch(result.stderr, /private background failure details/u);
+    fixture.cleanup();
+  }
+});
+
+test("background write launch may report a valid live Claude lock without certifying completion", () => {
+  const fixture = makeFixture({
+    FAKE_CLAUDE_LOCK_WORKTREE: "1",
+    FAKE_CLAUDE_LOCK_PID: String(process.pid),
+  });
   initGitRepo(fixture.cwd);
   writeFileSync(join(fixture.cwd, "README.md"), "# fixture\n");
   git(fixture.cwd, ["add", "README.md"]);
   git(fixture.cwd, ["commit", "-m", "initial"]);
-
   const result = fixture.run([
-    "delegate",
-    "--background",
-    "--write",
-    "--write-permissions",
-    "guarded",
-    "--confirm-background",
-    "unbounded-usage",
-    "--confirm-background-data",
-    "process-visible-prompt",
-    "--confirm-write",
-    "isolated-worktree",
-    "change one file",
+    "delegate", "--background", "--write", "--write-permissions", "guarded",
+    "--confirm-background", "unbounded-usage",
+    "--confirm-background-data", "process-visible-prompt",
+    "--confirm-write", "isolated-worktree", "--json", "change one file",
   ]);
-  assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /Verified worktree:/u);
-  assert.match(result.stderr, /\.claude\/worktrees\/ccfc-/u);
-  assert.match(result.stderr, /branch worktree-ccfc-/u);
-  assert.match(result.stderr, /background job deadbeef/u);
-  assert.doesNotMatch(result.stderr, /private background failure details/u);
+  assert.equal(result.status, 0, result.stderr);
+  const payload = JSON.parse(result.stdout);
+  assert.equal(payload.worktree.locked, true);
+  assert.equal(payload.session.state, "working");
   fixture.cleanup();
 });
 
@@ -2667,6 +2838,34 @@ test("plain import-session output exposes the persistent transcript path for lat
   const transcriptPath = archiveLine.slice("Full Claude transcript archived locally: ".length);
   assert.equal(existsSync(transcriptPath), true);
   assert.ok(result.stdout.includes(transcriptPath));
+  fixture.cleanup();
+});
+
+test("failed import reports its retained private transcript snapshot", () => {
+  const fixture = makeFixture({ FAKE_CLAUDE_JOB_STATE: "stopped" });
+  const sessionId = "29c90d15-2b3c-4a8d-968c-53db4fa6a3ec";
+  const claudeHome = join(fixture.cwd, "claude-home");
+  const codexHome = join(fixture.cwd, "codex-home");
+  const project = join(claudeHome, "projects", "source-project");
+  mkdirSync(project, { recursive: true });
+  writeFileSync(join(project, `${sessionId}.jsonl`), '{"type":"user","text":"keep this"}\n');
+  fixture.env.CLAUDE_CONFIG_DIR = claudeHome;
+  fixture.env.CODEX_HOME = codexHome;
+  fixture.env.FAKE_CLAUDE_RESPONSE = JSON.stringify({
+    type: "result", subtype: "error_during_execution", is_error: true,
+    result: "weekly usage limit reached", session_id: sessionId,
+  });
+
+  const result = fixture.run(["import-session", "--session", sessionId, "--json"]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /Claude weekly usage limit reached/u);
+  assert.match(result.stderr, /private transcript snapshot was retained at/u);
+  const archiveRoot = join(codexHome, "claude-session-archives", sessionId);
+  const archives = readdirSync(archiveRoot);
+  assert.equal(archives.length, 1);
+  assert.ok(result.stderr.includes(join(archiveRoot, archives[0])));
+  assert.equal(readFileSync(join(archiveRoot, archives[0], "transcript.jsonl"), "utf8"),
+    '{"type":"user","text":"keep this"}\n');
   fixture.cleanup();
 });
 
@@ -3448,6 +3647,36 @@ test("nonzero Claude output is withheld from wrapper errors", () => {
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /stdout and stderr were withheld/u);
   assert.doesNotMatch(result.stdout + result.stderr, /private-token/u);
+  fixture.cleanup();
+});
+
+test("precise turn-limit failures are not overwritten by rate-limit text in partial output", () => {
+  const fixture = makeFixture({
+    FAKE_CLAUDE_RESPONSE: JSON.stringify({
+      type: "result", subtype: "error_max_turns", terminal_reason: "max_turns",
+      is_error: true, result: "A source file described an HTTP 429 response.",
+    }),
+    FAKE_CLAUDE_EXIT: "1",
+  });
+  const result = fixture.run(["ask", "inspect"]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /maximum turn limit reached/u);
+  assert.doesNotMatch(result.stderr, /provider rate limit reached/u);
+  fixture.cleanup();
+});
+
+test("an unrelated line number is not classified as a Claude service error", () => {
+  const fixture = makeFixture({
+    FAKE_CLAUDE_RESPONSE: JSON.stringify({
+      type: "result", subtype: "error_during_execution", is_error: true,
+      result: "line 512 of a source file",
+    }),
+    FAKE_CLAUDE_EXIT: "1",
+  });
+  const result = fixture.run(["ask", "inspect"]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /execution error/u);
+  assert.doesNotMatch(result.stderr, /Claude service error/u);
   fixture.cleanup();
 });
 
