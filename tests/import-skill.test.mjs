@@ -20,7 +20,7 @@ test("Claude import skill is discoverable for explicit session handoffs", () => 
 test("Claude import skill archives full context before using the guarded summary bridge", () => {
   assert.match(skill, /\.\.\/claude-code\/scripts\/cc-for-codex/u);
   assert.match(skill, /import-session --session <UUID> --json/u);
-  assert.match(skill, /private local plaintext copy/u);
+  assert.match(skill, /private local plaintext snapshot/u);
   assert.match(skill, /Anthropic plan\s+capacity or API billing/u);
   assert.match(skill, /--confirm-concurrent-resume may-create-copy/u);
   assert.match(skill, /Require `transcriptArchived: true`/u);

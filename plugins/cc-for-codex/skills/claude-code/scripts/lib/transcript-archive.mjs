@@ -181,9 +181,14 @@ function copyRegularFile(source, destination, budget) {
     let totalBytes = budget.bytes;
     let fileBytes = 0;
     const buffer = Buffer.allocUnsafe(64 * 1024);
-    while (true) {
-      const readBytes = readSync(sourceFd, buffer, 0, buffer.length, null);
-      if (readBytes === 0) break;
+    // Snapshot the size observed on open. A running Claude session may append
+    // more JSONL while the copy is in progress; those later bytes belong to a
+    // later snapshot, not to this archive's claimed size and hash.
+    while (fileBytes < sourceStat.size) {
+      const readBytes = readSync(sourceFd, buffer, 0, Math.min(buffer.length, sourceStat.size - fileBytes), null);
+      if (readBytes === 0) {
+        throw new BridgeError("Claude transcript changed while being archived; import stopped before calling Claude.");
+      }
       const chunk = buffer.subarray(0, readBytes);
       let offset = 0;
       while (offset < chunk.length) offset += writeSync(destinationFd, chunk, offset, chunk.length - offset);
@@ -191,9 +196,6 @@ function copyRegularFile(source, destination, budget) {
       fileBytes += readBytes;
       hash?.update(chunk);
       if (totalBytes > MAX_ARCHIVE_BYTES) throw new BridgeError("Claude transcript and sidecars exceed the 1 GiB safe archive limit.");
-    }
-    if (fileBytes !== sourceStat.size) {
-      throw new BridgeError("Claude transcript changed while being archived; import stopped before calling Claude.");
     }
     chmodSync(destination, 0o600);
     return { bytes: totalBytes, files: budget.files + 1, fileBytes, hash };

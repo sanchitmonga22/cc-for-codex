@@ -189,6 +189,22 @@ if (args.includes("--bg")) {
       process.stderr.write(created.stderr || "fake worktree creation failed");
       process.exit(1);
     }
+    if (process.env.FAKE_CLAUDE_COMMIT_WORKTREE === "1") {
+      const committed = spawnSync("git", [
+        "-c", "user.name=CC Fixture", "-c", "user.email=fixture@example.invalid",
+        "-C", path, "commit", "--allow-empty", "-q", "-m", "unexpected writer commit",
+      ], { encoding: "utf8", shell: false });
+      if (committed.status !== 0) process.exit(1);
+    }
+    if (process.env.FAKE_CLAUDE_LOCK_WORKTREE === "1") {
+      // Shape captured from a real Claude Code 2.1.281 foreground --worktree run.
+      const reason = process.env.FAKE_CLAUDE_LOCK_REASON?.replaceAll("{name}", name) ||
+        `claude session ${name} (pid ${process.env.FAKE_CLAUDE_LOCK_PID || process.pid} start Thu Sep 24 14:58:06 2026)`;
+      const locked = spawnSync("git", ["worktree", "lock", "--reason", reason, path], {
+        cwd: process.cwd(), encoding: "utf8", shell: false,
+      });
+      if (locked.status !== 0) process.exit(1);
+    }
     if (process.env.FAKE_CLAUDE_REMOVE_WORKTREE_AFTER_CREATE === "1") {
       rmSync(path, { recursive: true, force: true });
     }
@@ -242,6 +258,21 @@ if (args.includes("-p")) {
     if (created.status !== 0) {
       process.stderr.write(created.stderr || "fake worktree creation failed");
       process.exit(1);
+    }
+    if (process.env.FAKE_CLAUDE_COMMIT_WORKTREE === "1") {
+      const committed = spawnSync("git", [
+        "-c", "user.name=CC Fixture", "-c", "user.email=fixture@example.invalid",
+        "-C", path, "commit", "--allow-empty", "-q", "-m", "unexpected writer commit",
+      ], { encoding: "utf8", shell: false });
+      if (committed.status !== 0) process.exit(1);
+    }
+    if (process.env.FAKE_CLAUDE_LOCK_WORKTREE === "1") {
+      const reason = process.env.FAKE_CLAUDE_LOCK_REASON?.replaceAll("{name}", name) ||
+        `claude session ${name} (pid ${process.env.FAKE_CLAUDE_LOCK_PID || process.pid} start Thu Sep 24 14:58:06 2026)`;
+      const locked = spawnSync("git", ["worktree", "lock", "--reason", reason, path], {
+        cwd: process.cwd(), encoding: "utf8", shell: false,
+      });
+      if (locked.status !== 0) process.exit(1);
     }
     if (process.env.FAKE_CLAUDE_REMOVE_WORKTREE_AFTER_CREATE === "1") {
       rmSync(path, { recursive: true, force: true });
