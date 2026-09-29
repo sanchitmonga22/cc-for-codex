@@ -14,8 +14,8 @@ heavy cross-model workflow is selected and the usage is approved.
 ## Default model routing
 
 - Explore concurrently in one message: GPT-6 Luna at `max` (or `high` when
-  latency matters) for architecture, invariants, and failure modes; Sonnet 5
-  (`claude-sonnet-5`) at `ultracode` for locations, call sites, and conventions.
+  latency matters) for architecture, invariants, and failure modes; Sonnet 5.5
+  (`claude-sonnet-5-5`) at `high` for locations, call sites, and conventions.
 - Plan: GPT-6 Sol at `high`.
 - Challenge: Claude Opus 5.5 (`claude-opus-5-5`) at `high`, read-only and
   aimed at the plan rather than production code. Use Fable 5.1 only if the

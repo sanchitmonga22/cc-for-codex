@@ -16,8 +16,8 @@ Use the executable bridge launcher at the sibling skill path `../claude-code/scr
 ## Model defaults
 
 Standard and adversarial reviews use Claude Opus 5.5 (`claude-opus-5-5`) at
-`high` effort by default through the bridge. Sonnet 5 (`claude-sonnet-5`) is
-available explicitly at `ultracode` effort. Do not route reviews to Fable 5.1
+`high` effort by default through the bridge. Sonnet 5.5 (`claude-sonnet-5-5`) is
+available explicitly at `high` effort. Do not route reviews to Fable 5.1
 unless the user specifically asks for that model. Cloud `ultrareview` uses Anthropic's product-selected cloud
 model and does not accept the local `--model` flag.
 

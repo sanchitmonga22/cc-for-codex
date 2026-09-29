@@ -384,10 +384,10 @@ test("Opus 5.5 checks its documented minimum CLI version and permits an explicit
     assert.equal(fixture.calls().some((entry) => entry.args.includes("-p")), false);
 
     if (version === "2.1.279") {
-      const alternativeCall = fixture.run(["ask", "--model", "claude-sonnet-5", "hello"]);
+      const alternativeCall = fixture.run(["ask", "--model", "claude-sonnet-5-5", "hello"]);
       assert.equal(alternativeCall.status, 0, alternativeCall.stderr);
       const invocation = fixture.calls().find((entry) => entry.args.includes("-p"));
-      assert.ok(invocation.args.includes("claude-sonnet-5"));
+      assert.ok(invocation.args.includes("claude-sonnet-5-5"));
     }
     fixture.cleanup();
   }
@@ -541,10 +541,12 @@ test("ask sends an injection-shaped prompt on stdin with the exact safe profile"
   fixture.cleanup();
 });
 
-test("Claude calls route Opus 5.5 to high and Sonnet 5 to ultracode", () => {
+test("Claude calls route Opus 5.5 to high and Sonnet 5.5 to high", () => {
   assert.equal(DEFAULT_CLAUDE_MODEL, "claude-opus-5-5");
   assert.equal(defaultEffortForModel("claude-opus-5-5"), "high");
-  assert.equal(defaultEffortForModel("claude-sonnet-5"), "ultracode");
+  assert.equal(defaultEffortForModel("claude-sonnet-5-5"), "high");
+  assert.equal(defaultEffortForModel("sonnet"), "high");
+  assert.equal(defaultEffortForModel("claude-sonnet-5"), "high");
   assert.equal(defaultEffortForModel("claude-fable-5-1"), undefined);
 
   const defaultFixture = makeFixture();
@@ -557,13 +559,13 @@ test("Claude calls route Opus 5.5 to high and Sonnet 5 to ultracode", () => {
   defaultFixture.cleanup();
 
   const overrideFixture = makeFixture();
-  const overrideResult = overrideFixture.run(["ask", "--model", "claude-sonnet-5", "hello"]);
+  const overrideResult = overrideFixture.run(["ask", "--model", "claude-sonnet-5-5", "hello"]);
   assert.equal(overrideResult.status, 0, overrideResult.stderr);
   const overrideCall = overrideFixture.calls().find((call) => call.args.includes("-p"));
   assert.ok(overrideCall);
-  assert.equal(overrideCall.args[overrideCall.args.indexOf("--model") + 1], "claude-sonnet-5");
-  assert.equal(overrideCall.args[overrideCall.args.indexOf("--effort") + 1], "ultracode");
-  const explicit = overrideFixture.run(["ask", "--model", "claude-sonnet-5", "--effort", "high", "hello"]);
+  assert.equal(overrideCall.args[overrideCall.args.indexOf("--model") + 1], "claude-sonnet-5-5");
+  assert.equal(overrideCall.args[overrideCall.args.indexOf("--effort") + 1], "high");
+  const explicit = overrideFixture.run(["ask", "--model", "claude-sonnet-5-5", "--effort", "high", "hello"]);
   assert.equal(explicit.status, 0, explicit.stderr);
   const explicitCall = overrideFixture.calls().filter((call) => call.args.includes("-p")).at(-1);
   assert.equal(explicitCall.args[explicitCall.args.indexOf("--effort") + 1], "high");
@@ -574,10 +576,10 @@ test("Claude calls route Opus 5.5 to high and Sonnet 5 to ultracode", () => {
   overrideFixture.cleanup();
 });
 
-test("background Sonnet delegation uses ultracode without a Fable fallback", () => {
+test("background Sonnet delegation uses high without a Fable fallback", () => {
   const fixture = makeFixture();
   const result = fixture.run([
-    "delegate", "--background", "--model", "claude-sonnet-5",
+    "delegate", "--background", "--model", "claude-sonnet-5-5",
     "--confirm-background", "unbounded-usage",
     "--confirm-background-data", "process-visible-prompt",
     "Inspect this bounded question",
@@ -585,8 +587,8 @@ test("background Sonnet delegation uses ultracode without a Fable fallback", () 
   assert.equal(result.status, 0, result.stderr);
   const call = fixture.calls().find((entry) => entry.args.includes("--bg"));
   assert.ok(call);
-  assert.equal(call.args[call.args.indexOf("--model") + 1], "claude-sonnet-5");
-  assert.equal(call.args[call.args.indexOf("--effort") + 1], "ultracode");
+  assert.equal(call.args[call.args.indexOf("--model") + 1], "claude-sonnet-5-5");
+  assert.equal(call.args[call.args.indexOf("--effort") + 1], "high");
   assert.equal(call.args.includes("claude-fable-5-1"), false);
   fixture.cleanup();
 });
@@ -1875,8 +1877,23 @@ test("write delegation is isolated, file-only, dangerous by default, and configu
   const fullReport = JSON.parse(full.stdout);
   const fullCall = fixture.calls().filter((entry) => entry.args.includes("--worktree")).at(-1);
   assert.equal(fullReport.writeExecution, "full");
-  assert.equal(fullCall.args[fullCall.args.indexOf("--tools") + 1], "Read,Glob,Grep,Edit,Write,Bash");
+  assert.equal(fullCall.args[fullCall.args.indexOf("--tools") + 1], "Read,Glob,Grep,Edit,Write,Bash,Workflow");
   assert.equal(fullCall.args.includes("--dangerously-skip-permissions"), true);
+  assert.match(fullCall.stdin, /dynamic workflow \(ultracode\)/u);
+  const withoutWorkflow = fixture.run([
+    "delegate", "--write", "--execution", "full", "--no-ultracode",
+    "--confirm-execution", "full-host-access",
+    "--confirm-write", "isolated-worktree",
+    "--confirm-worktree-include", "copy-ignored-files",
+    "--confirm-dangerous-permissions", "bypass-host-safety", "fix directly",
+  ]);
+  assert.equal(withoutWorkflow.status, 0, withoutWorkflow.stderr);
+  const directCall = fixture.calls().filter((entry) => entry.args.includes("--worktree")).at(-1);
+  assert.equal(directCall.args[directCall.args.indexOf("--tools") + 1], "Read,Glob,Grep,Edit,Write,Bash");
+  assert.doesNotMatch(directCall.stdin, /dynamic workflow/u);
+  const invalidWorkflow = fixture.run(["delegate", "--no-ultracode", "inspect"]);
+  assert.notEqual(invalidWorkflow.status, 0);
+  assert.match(invalidWorkflow.stderr, /only with --write --execution full/u);
 
   const guarded = fixture.run([
     "delegate",

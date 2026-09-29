@@ -1,5 +1,32 @@
 # Claude documentation coverage
 
+## Plugin documentation reorganization (2026-09-29)
+
+The current index reorganizes existing plugin documentation under these URLs.
+These are native Claude plugin surfaces, not automatically loaded by guarded
+bridge calls; consult them for explicit native plugin-management tasks.
+
+- [Anthropic marketplaces](https://code.claude.com/docs/en/plugins/anthropic-marketplaces.md)
+- [CLI hints](https://code.claude.com/docs/en/plugins/cli-hints.md)
+- [CLI reference](https://code.claude.com/docs/en/plugins/cli-reference.md)
+- [Code intelligence](https://code.claude.com/docs/en/plugins/code-intelligence.md)
+- [Components](https://code.claude.com/docs/en/plugins/components.md)
+- [Create marketplace](https://code.claude.com/docs/en/plugins/create-marketplace.md)
+- [Create plugins](https://code.claude.com/docs/en/plugins/create.md)
+- [Dependencies](https://code.claude.com/docs/en/plugins/dependencies.md)
+- [Host marketplace](https://code.claude.com/docs/en/plugins/host-marketplace.md)
+- [Install](https://code.claude.com/docs/en/plugins/install.md)
+- [Loading](https://code.claude.com/docs/en/plugins/loading.md)
+- [Manifest reference](https://code.claude.com/docs/en/plugins/manifest-reference.md)
+- [Marketplace reference](https://code.claude.com/docs/en/plugins/marketplace-reference.md)
+- [Measure](https://code.claude.com/docs/en/plugins/measure.md)
+- [Organizations](https://code.claude.com/docs/en/plugins/org.md)
+- [Overview](https://code.claude.com/docs/en/plugins/overview.md)
+- [Publish](https://code.claude.com/docs/en/plugins/publish.md)
+- [Relevance](https://code.claude.com/docs/en/plugins/relevance.md)
+- [Security](https://code.claude.com/docs/en/plugins/security.md)
+- [Troubleshooting](https://code.claude.com/docs/en/plugins/troubleshooting.md)
+
 Snapshot: 2026-09-03. Canonical source: [Claude Code docs index](https://code.claude.com/docs/llms.txt).
 
 This is the complete English-page inventory exposed by the official index at the snapshot date. Every page receives a disposition so new Claude features cannot disappear behind a vague “docs reviewed” claim. The bridge-critical pages marked **Core design input** were used directly for command, safety, lifecycle, and data-boundary decisions. **Native/direct mapping** pages describe supported Claude product surfaces that are intentionally available only through the guarded native escape hatch or Claude itself. **Deployment/product context** affects compatibility but is not reimplemented. Agent SDK pages are a possible future transport and remain explicitly deferred. Weekly updates and legal/glossary pages are retained as reference history.

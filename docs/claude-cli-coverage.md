@@ -1,6 +1,9 @@
 # Claude CLI coverage
 
-This ledger was checked against the locally installed Claude Code `2.1.281` on 2026-09-24 and against Anthropic's [official CLI reference](https://code.claude.com/docs/en/cli-reference). Run `npm run audit:claude` to detect drift without making a model call.
+This ledger was checked against the locally installed Claude Code `2.1.285` on 2026-09-29 and against Anthropic's [official CLI reference](https://code.claude.com/docs/en/cli-reference). Run `npm run audit:claude` to detect drift without making a model call.
+
+Latest CLI additions: `--client-data-url` loads remote signed configuration
+and is native-only; `--desktop` opens Claude Desktop and is native-only.
 
 Coverage labels:
 
@@ -46,7 +49,7 @@ Native transport is finite-command argv/stdin passthrough, not universal protoco
 | `--debug-file` | Native + mutation confirmation | Writes a local log file |
 | `--disable-slash-commands` | Native | Safe mode already disables customization loading |
 | `--disallowedTools`, `--disallowed-tools` | Bridge-owned / Native | Guarded commands use an affirmative tool allowlist |
-| `--effort` | Guarded | CLI help advertises `low`, `medium`, `high`, `xhigh`, `max`; `ultracode` is a Claude Code-specific mode accepted by a live Sonnet 5 `-p` call on 2.1.281. The bridge defaults Opus 5.5 to `high` and explicit Sonnet 5 to `ultracode`, with explicit override support. |
+| `--effort` | Guarded | CLI help advertises `low`, `medium`, `high`, `xhigh`, `max`. Opus 5.5 and explicit Sonnet 5.5 default to `high`. Full-write delegation separately enables Workflow and requests ultracode orchestration; read-only calls never enable Workflow. Explicit effort overrides remain supported. |
 | `--enable-auto-mode` | Native + mutation confirmation | Deprecated auto-mode alias; never implicit |
 | `--environment` | Native + cloud/mutation confirmation | Self-hosted cloud environment |
 | `--exclude-dynamic-system-prompt-sections` | Native | Advanced prompt-cache behavior |
@@ -134,7 +137,7 @@ Native transport is finite-command argv/stdin passthrough, not universal protoco
 
 The audit recursively walks every command advertised through a standard `Commands:` section, plus the known feature-gated `daemon`, `remote-control`, and `self-hosted-runner` roots. Each discovered surface and every advertised option must occur on its exact ledger row. “Native” means exact argv passthrough after the applicable mutation, cloud, or dangerous confirmation; it does not mean that a Codex skill selects the option automatically.
 
-| Exact surface | Advertised options in Claude Code 2.1.281 | Coverage |
+| Exact surface | Advertised options in Claude Code 2.1.285 | Coverage |
 |---|---|---|
 | `claude agents` | `--add-dir`, `--agent`, `--all`, `--allow-dangerously-skip-permissions`, `--cwd`, `--dangerously-skip-permissions`, `--effort`, `--json`, `--mcp-config`, `--model`, `--permission-mode`, `--plugin-dir`, `--restricted`, `--setting-sources`, `--settings`, `--strict-mcp-config` | Guarded subset: `--json --all --cwd`; remainder native |
 | `claude attach` | None | Guarded exact-ID TTY attach |
@@ -164,7 +167,7 @@ The audit recursively walks every command advertised through a standard `Command
 | `claude mcp remove` | `--scope`, `-s` | Native mutation |
 | `claude mcp reset-project-choices` | None | Native mutation |
 | `claude mcp serve` | `--debug`, `--verbose`, `-d` | Native tool-server surface, conservatively family mutation-gated; not a Claude answer endpoint |
-| `claude plugin` | None | Native mutation |
+| `claude plugin` | `--values-stdin` (configure subcommand advertised by parent help) | Native mutation |
 | `claude plugin details` | None | Native read, conservatively family mutation-gated |
 | `claude plugin disable` | `--all`, `--json`, `--scope`, `-a`, `-s` | Native mutation |
 | `claude plugin enable` | `--json`, `--scope`, `-s` | Native mutation |
@@ -172,7 +175,8 @@ The audit recursively walks every command advertised through a standard `Command
 | `claude plugin eval init` | `--bare`, `--eval-dir`, `--interactive`, `-i` | Native mutation |
 | `claude plugin init` | `--author`, `--author-email`, `--description`, `--force`, `--with`, `-f` | Native mutation |
 | `claude plugin install` | `--accept-command`, `--config`, `--json`, `--registry`, `--scope`, `--yes`, `-s`, `-y` | Native third-party-code mutation |
-| `claude plugin list` | `--available`, `--json` | Native read/network surface, conservatively family mutation-gated |
+| `claude plugin list` | `--available`, `--json`, `--data-size` | Native read/network surface, conservatively family mutation-gated |
+| `claude plugin configure` | `--json`, `--values-stdin` | Native configuration mutation; stdin may contain secrets |
 | `claude plugin marketplace` | None | Native mutation/read |
 | `claude plugin marketplace add` | `--claudeai`, `--scope`, `--sparse` | Native third-party-code mutation |
 | `claude plugin marketplace list` | `--json` | Native read, conservatively family mutation-gated |

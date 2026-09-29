@@ -20,8 +20,8 @@ These are workflow defaults. Use the host's actual model IDs and report any
 unavailable default before substituting.
 
 - Explore: GPT-6 Luna at `max` (or `high` when latency matters) for
-  architecture, invariants, and failure modes; Sonnet 5 (`claude-sonnet-5`)
-  at `ultracode` for locations, call sites, and conventions.
+  architecture, invariants, and failure modes; Sonnet 5.5 (`claude-sonnet-5-5`)
+  at `high` for locations, call sites, and conventions.
 - Plan and triage: GPT-6 Sol at `high`.
 - Branch, implementation, validation, and fixes: GPT-6 Sol at `high`.
 - Claude challenge and finished-diff review: Claude Opus 5.5

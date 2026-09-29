@@ -26,10 +26,10 @@ https://github.com/user-attachments/assets/bdba3033-1279-4283-a587-0cc50fa43b2f
 [Download the original recording](docs/assets/cc-for-codex-workflow.mp4)
 
 <details>
-<summary>Historical plugin-browser screenshot from v0.2.0 — the current v0.2.7 package has ten skills</summary>
+<summary>Historical plugin-browser screenshot from v0.2.0 — the current v0.2.8 package has ten skills</summary>
 
 <p align="center">
-  <a href="docs/assets/cc-for-codex-plugin-store.png"><img src="docs/assets/cc-for-codex-plugin-store.png" alt="Historical v0.2.0 plugin browser screenshot showing the original six skills; current v0.2.7 adds four more, including Claude Import" width="800" /></a>
+  <a href="docs/assets/cc-for-codex-plugin-store.png"><img src="docs/assets/cc-for-codex-plugin-store.png" alt="Historical v0.2.0 plugin browser screenshot showing the original six skills; current v0.2.8 adds four more, including Claude Import" width="800" /></a>
 </p>
 
 </details>
@@ -45,8 +45,8 @@ Do not modify project code, credentials, unrelated settings, or unrelated plugin
 
 1. Run `codex --version` and confirm the Codex CLI is available.
 2. Inspect `codex plugin marketplace list --json`. Locate the entry named `cc-for-codex` and require its `marketplaceSource.source` to be `https://github.com/sanchitmonga22/cc-for-codex.git` (the same URL without `.git` is also equivalent). If it is absent, run `codex plugin marketplace add sanchitmonga22/cc-for-codex --ref main --json`. If the name exists with any other source, stop and ask me before changing it. If the source matches, run `codex plugin marketplace upgrade cc-for-codex --json`.
-3. Inspect `codex plugin list --json`. If `cc-for-codex@cc-for-codex` is absent or is installed below semver `0.2.7`, run `codex plugin add cc-for-codex@cc-for-codex --json` to install or upgrade it from the refreshed marketplace. Do not remove the existing plugin. If Codex reports that it cannot upgrade in place, stop and report that result before changing the installation.
-4. Inspect `codex plugin list --json` again. Require the exact plugin ID `cc-for-codex@cc-for-codex`, with `installed: true`, `enabled: true`, and version `0.2.7` or newer. Use only that entry's reported `source.path`; do not guess or search for a cache directory. Change directory to that exact path before the next steps.
+3. Inspect `codex plugin list --json`. If `cc-for-codex@cc-for-codex` is absent or is installed below semver `0.2.8`, run `codex plugin add cc-for-codex@cc-for-codex --json` to install or upgrade it from the refreshed marketplace. Do not remove the existing plugin. If Codex reports that it cannot upgrade in place, stop and report that result before changing the installation.
+4. Inspect `codex plugin list --json` again. Require the exact plugin ID `cc-for-codex@cc-for-codex`, with `installed: true`, `enabled: true`, and version `0.2.8` or newer. Use only that entry's reported `source.path`; do not guess or search for a cache directory. Change directory to that exact path before the next steps.
 5. From that verified source path, run `node scripts/install-global-workflow.mjs --check`, report the absolute targets, then run it with `--apply`. This required step may install or refresh only the marked blocks in global `CLAUDE.md` and `AGENTS.md`; if legacy role text is reported, stop and ask before using `--allow-conflicts`.
 6. Run `scripts/cc-for-codex doctor --json`. Confirm that Claude Code is installed, authenticated, and reports the required guarded capabilities. Do not print email addresses, tokens, organization IDs, settings, environment variables, or unrelated plugin details.
 7. I authorize exactly one minimal Claude model request for a live read-only smoke test, which may count against my Anthropic plan or API billing. Run the verified source path's runner with: `ask --model haiku --max-turns 1 --text-only --prompt "Reply with exactly: CC for Codex is connected."` Do not enable native mode, MCP, Chrome, shell tools, edits, background execution, or dangerous permissions.
@@ -150,11 +150,17 @@ Claude host exposes the same IDs. If a default is unavailable, report the
 runtime's actual availability and ask before substituting; never claim a model
 was used unless the runtime confirms it.
 
-The bridge passes `--effort high` for Opus 5.5 and `--effort ultracode` for
-explicit Sonnet 5 calls unless you override `--effort`. Sonnet's `ultracode`
-mode was live-tested with Claude Code 2.1.281; it is a Claude Code mode, not a
-standard Claude API effort level. If another CLI build rejects it, choose an
-explicit supported effort such as `--effort high` rather than assuming it ran.
+The bridge passes `--effort high` for both Opus 5.5 and explicitly selected
+Sonnet 5.5 (`--model claude-sonnet-5-5`). Explicit `--effort` overrides remain available.
+
+Ultracode is dynamic-workflow orchestration, not a second effort level. Full
+write delegation (`--write --execution full`, with its existing confirmations)
+now enables the `Workflow` tool and requests dynamic workflows by default,
+while retaining `high` reasoning effort. Use `--no-ultracode` to opt out.
+Read-only consultation/review and file-only edits never enable this code-running
+tool. Availability depends on Claude Code/account support: a workflow request
+is not proof that it executed; inspect real tool output before claiming it ran.
+See Anthropic's [dynamic workflows guide](https://platform.claude.com/cookbook/claude-agent-sdk-08-dynamic-workflows).
 
 ### Light track — implement directly, no ceremony
 
@@ -184,7 +190,7 @@ mode: `fresh`, `resume`, or `autonomous`.
 1. **EXPLORE:** fan out all agents in one message, concurrently. Give each
    agent one narrow question. The defaults are Codex GPT-6 Luna — `max` for
    architecture, invariants, and failure modes (use `high` when latency matters),
-   plus Sonnet 5 (`claude-sonnet-5`) at `ultracode` for locations, call sites,
+   plus Sonnet 5.5 (`claude-sonnet-5-5`) at `high` for locations, call sites,
    and conventions.
    Five questions means five shallow, scoped answers—not one unfocused sweep.
 2. **PLAN:** GPT-6 Sol — high writes `~/.claude/plans/<name>.md` with the goal,

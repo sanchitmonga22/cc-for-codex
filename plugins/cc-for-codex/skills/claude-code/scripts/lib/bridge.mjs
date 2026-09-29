@@ -65,7 +65,7 @@ export const MIN_OPUS_5_5_CLI_VERSION = "2.1.280";
 
 export function defaultEffortForModel(model) {
   if (model === "claude-opus-5-5" || model === "opus") return "high";
-  if (model === "claude-sonnet-5" || model === "sonnet") return "ultracode";
+  if (["claude-sonnet-5-5", "claude-sonnet-5", "sonnet"].includes(model)) return "high";
   return undefined;
 }
 
@@ -568,6 +568,10 @@ export async function delegate(options) {
   const writeExecution = write
     ? validateWriteExecution(options.writeExecution ?? "files")
     : undefined;
+  if (options.noUltracode !== undefined && writeExecution !== "full") {
+    throw new BridgeError("--no-ultracode is valid only with --write --execution full.");
+  }
+  const ultracode = writeExecution === "full" && !options.noUltracode;
   if (writeExecution === "full" && writePermissions !== "dangerous") {
     throw new BridgeError("--execution full requires --write-permissions dangerous because it enables Bash with bypassed Claude prompts.");
   }
@@ -689,11 +693,16 @@ export async function delegate(options) {
       ? "You are working for Codex in an isolated Claude-created git worktree with explicit full-execution authorization. Make only the requested changes. You may run the repository's validation commands with Bash, but do not commit, rebase, switch branches, alter Git worktree state, access secrets or unrelated host paths, change host configuration, merge, push, publish, or delete the worktree. Read AGENTS.md and CLAUDE.md explicitly when present. At the end, report changed files, commands and real outputs, what remains unverified, the worktree path, and the branch name."
       : "You are working for Codex in an isolated Claude-created git worktree. Make only the requested changes. Never merge, push, publish, delete the worktree, change host configuration, or access the network. Do not run repository code or shell commands; Codex will validate separately. Read AGENTS.md and CLAUDE.md explicitly when present. At the end, report changed files, what remains unverified, the worktree path, and the branch name."
     : "You are a read-only investigator working for Codex. Analyze the request and repository, but do not edit files, run commands, access the network, or delegate. Read AGENTS.md and CLAUDE.md explicitly when present. Return concrete findings and validation advice.";
-  const prompt = wrapUserPrompt(fixedInstruction, options.prompt);
+  const prompt = wrapUserPrompt(
+    ultracode
+      ? `${fixedInstruction} Use a dynamic workflow (ultracode) through the Workflow tool for implementation and verification when supported. Keep every worker within this worktree and these same restrictions. If Workflow is unavailable, report that explicitly and perform the bounded task directly; do not claim ultracode ran.`
+      : fixedInstruction,
+    options.prompt,
+  );
   if (background) assertBackgroundPromptSize(prompt, "delegation");
 
   const profileArgs = write
-    ? writeProfileArgs(writePermissions, writeExecution)
+    ? writeProfileArgs(writePermissions, writeExecution, ultracode)
     : readProfileArgs(false, "safe");
   const tuning = background ? [] : tuningArgs(options, 30, capabilityHelp);
   const sessionArgs = [];
@@ -773,6 +782,7 @@ export async function delegate(options) {
         : "Background sessions have no max-budget guard, and their prompt is process-visible while launching. Use status and stop to monitor usage.",
       writePermissions,
       writeExecution,
+      ultracodeRequested: ultracode,
       worktree,
       session,
     };
@@ -817,6 +827,7 @@ export async function delegate(options) {
     ...response,
     writePermissions,
     writeExecution,
+    ultracodeRequested: ultracode,
     warning: writePermissions === "dangerous"
       ? writeExecution === "full"
         ? "Full execution enables Bash with bypassed Claude permission checks. The generated worktree is not an OS sandbox; inspect the diff and command output before integrating it."
@@ -1399,7 +1410,7 @@ function readProfileArgs(textOnly, profile) {
   return args;
 }
 
-function writeProfileArgs(writePermissions, writeExecution = "files") {
+function writeProfileArgs(writePermissions, writeExecution = "files", ultracode = false) {
   const args = [
     "--safe-mode",
     "--strict-mcp-config",
@@ -1407,7 +1418,9 @@ function writeProfileArgs(writePermissions, writeExecution = "files") {
     "--permission-prompts",
     "none",
     "--tools",
-    writeExecution === "full" ? "Read,Glob,Grep,Edit,Write,Bash" : "Read,Glob,Grep,Edit,Write",
+    writeExecution === "full"
+      ? `Read,Glob,Grep,Edit,Write,Bash${ultracode ? ",Workflow" : ""}`
+      : "Read,Glob,Grep,Edit,Write",
     "--settings",
     JSON.stringify({ worktree: { baseRef: "head" } }),
   ];

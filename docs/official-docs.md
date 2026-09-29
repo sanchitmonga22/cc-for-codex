@@ -38,10 +38,10 @@ The [Claude Code documentation index](https://code.claude.com/docs/llms.txt) is 
 
 | Source | Routing decision |
 |---|---|
-| [Models overview](https://platform.claude.com/docs/en/models/overview) | Opus 5.5 is the default for most bridge calls; Sonnet 5 is an explicit alternative; Fable 5.1 is not recommended by default |
+| [Models overview](https://platform.claude.com/docs/en/models/overview) | Opus 5.5 is the default for most bridge calls; Sonnet 5.5 is an explicit alternative; Fable 5.1 is not recommended by default |
 | [Claude Opus 5.5 migration guide](https://platform.claude.com/docs/en/models/opus-5-5/migration-guide) | Canonical API model ID is `claude-opus-5-5`; the bridge selects it at `high` effort rather than the model's native `medium` default |
-| [Effort guide](https://platform.claude.com/docs/en/build-with-claude/effort) | Opus 5.5 supports `high`; Sonnet 5 supports standard effort levels. `ultracode` is a Claude Code-specific mode, not a standard API level |
-| [Dynamic workflows cookbook](https://platform.claude.com/cookbook/claude-agent-sdk-08-dynamic-workflows) | Documents the interactive `/effort ultracode` mode; the installed Claude Code 2.1.281 also accepted `--effort ultracode` in a live Sonnet 5 `-p` call |
+| [Effort guide](https://platform.claude.com/docs/en/build-with-claude/effort) | Opus 5.5 supports `high`; Sonnet 5.5 supports standard effort levels. `ultracode` is a Claude Code-specific mode, not a standard API level |
+| [Dynamic workflows cookbook](https://platform.claude.com/cookbook/claude-agent-sdk-08-dynamic-workflows) | Workflow tool plus an explicit workflow request enables orchestration; full-write delegation requests this independently of high effort. Read-only calls do not allow Workflow |
 
 ## Claude Code: permissions and trust
 

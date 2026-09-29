@@ -1,5 +1,10 @@
 # Bridge command reference
 
+Full-write `delegate --write --execution full` enables Workflow and requests
+ultracode orchestration independently of high effort. Existing write/full-host
+confirmations are still required. `--no-ultracode` disables this request and
+tool. No read-only command enables Workflow.
+
 All examples use `<runner>`, where `<runner>` is the absolute path to the executable `scripts/cc-for-codex` launcher inside the `claude-code` skill. Invoke it directly; the launcher safely resolves Node outside the current repository before loading the internal JavaScript entrypoint.
 
 ## Consultation
@@ -12,7 +17,7 @@ handoff [--prompt TEXT | --prompt-file FILE]
 import-session --session UUID [context]
 ```
 
-Shared foreground controls are `--model`, `--effort`, `--max-turns`, `--max-budget-usd`, `--fallback-model`, `--timeout-seconds`, and `--cwd`. When `--model` is omitted, the bridge passes `--model claude-opus-5-5 --effort high`. Explicit `--model claude-sonnet-5` defaults to `--effort ultracode` on supported Claude Code builds. An explicit `--effort` overrides either default. Fable 5.1 is available only as a specifically requested model override; it is not recommended by default.
+Shared foreground controls are `--model`, `--effort`, `--max-turns`, `--max-budget-usd`, `--fallback-model`, `--timeout-seconds`, and `--cwd`. When `--model` is omitted, the bridge passes `--model claude-opus-5-5 --effort high`. Explicit `--model claude-sonnet-5-5` defaults to `--effort high` on supported Claude Code builds. An explicit `--effort` overrides either default. Fable 5.1 is available only as a specifically requested model override; it is not recommended by default.
 
 `import-session` first copies the exact local JSONL transcript and any
 same-session subagent/tool-result sidecars into a user-private archive under

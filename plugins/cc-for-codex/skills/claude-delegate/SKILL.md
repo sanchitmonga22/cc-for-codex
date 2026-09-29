@@ -5,13 +5,18 @@ description: "Delegate a bounded task from Codex to the local Claude Code CLI. U
 
 # Claude Delegate
 
+Full execution requests ultracode dynamic workflows with high model effort by
+default. Only full-write delegation enables Workflow; `--no-ultracode` opts
+out. Confirm an actual Workflow tool call before reporting orchestration as
+successful. Workflow workers have full host access, not an OS sandbox.
+
 Use the executable bridge launcher at the sibling skill path `../claude-code/scripts/cc-for-codex`, resolved to an absolute path. Invoke it directly, never through a bare `node` lookup.
 
 ## Modes
 
 Ordinary Claude calls default to Claude Opus 5.5 (`claude-opus-5-5`) at
-`high` effort. Explicit `--model claude-sonnet-5` selects Sonnet at
-`ultracode` effort; pass `--effort high` if this CLI does not support that mode.
+`high` effort. Explicit `--model claude-sonnet-5-5` selects Sonnet at
+`high` effort. Full execution requests dynamic workflows by default; use `--no-ultracode` to opt out.
 Do not route to Fable 5.1 unless the user specifically requests it.
 
 - Foreground read-only: `delegate <prompt>`.

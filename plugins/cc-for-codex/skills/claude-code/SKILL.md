@@ -37,9 +37,12 @@ that model change.
 - The bridge defaults to Claude Opus 5.5 (`claude-opus-5-5`) at `high` effort
   for ordinary consultation, handoff, and delegation. Pass `--model` or
   `--effort` to override the respective default.
-- Claude Sonnet 5 (`claude-sonnet-5`) is an explicit alternative at
-  `ultracode` effort. This mode was live-tested with Claude Code 2.1.281;
-  use an explicit `--effort high` if the installed CLI rejects it.
+- Claude Sonnet 5.5 (`claude-sonnet-5-5`) is an explicit alternative at
+  `high` effort.
+- Full write delegation requests ultracode dynamic workflows with `Workflow`
+  available and high effort. Read-only and file-only profiles never enable
+  Workflow. Use `--no-ultracode` on full delegation to opt out; verify actual
+  Workflow tool calls before claiming orchestration ran.
 - Do not recommend Fable 5.1 as a routine alternative. Use it only when the
   user specifically requests that model; the bridge then leaves effort to
   Claude Code unless `--effort` is provided.

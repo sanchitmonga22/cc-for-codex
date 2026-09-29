@@ -26,7 +26,7 @@ The human decides what is committed, merged, published, or deployed.
 - GPT-6 Luna at `max` (or `high` when latency matters) is reserved for
   parallel heavy-track exploration.
 - Claude Code calls default to Claude Opus 5.5 (`claude-opus-5-5`) at `high`
-  effort. Explicit Sonnet 5 (`claude-sonnet-5`) uses `ultracode` when the
+  effort. Explicit Sonnet 5.5 (`claude-sonnet-5-5`) uses `high` when the
   installed CLI supports it. Do not recommend Fable 5.1 unless the user
   specifically requests that model.
 - Model availability is provider- and host-dependent. Report the actual model

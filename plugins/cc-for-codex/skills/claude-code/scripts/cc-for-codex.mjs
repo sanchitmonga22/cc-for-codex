@@ -505,12 +505,13 @@ async function runDelegate(args) {
       "confirm-dangerous-permissions": { type: "string" },
       "confirm-execution": { type: "string" },
       execution: { type: "string" },
+      "no-ultracode": { type: "boolean" },
       "write-permissions": { type: "string" },
     },
   });
   if (values.help) {
     return printCommandHelp(
-      "delegate [--background|--wait] [--fresh|--resume <uuid>] [--write] [options] [prompt]\n  Read-only by default. --write requires a fresh isolated worktree and defaults to zero-prompt dangerous file permissions.\n  Use --execution full with --confirm-execution full-host-access to enable Bash; it requires dangerous permissions.\n  Use --write-permissions guarded (or CC_FOR_CODEX_WRITE_PERMISSIONS=guarded) for restricted file-only edits.\n  Background mode requires usage and process-visible-prompt confirmations.",
+      "delegate [--background|--wait] [--fresh|--resume <uuid>] [--write] [options] [prompt]\n  Read-only by default. --write requires a fresh isolated worktree and defaults to zero-prompt dangerous file permissions.\n  Use --execution full with --confirm-execution full-host-access to enable Bash and request ultracode workflows; it requires dangerous permissions. Use --no-ultracode to disable workflows.\n  Use --write-permissions guarded (or CC_FOR_CODEX_WRITE_PERMISSIONS=guarded) for restricted file-only edits.\n  Background mode requires usage and process-visible-prompt confirmations.",
     );
   }
   if (values.profile !== undefined || values["confirm-native-profile"] !== undefined) {
@@ -541,6 +542,7 @@ async function runDelegate(args) {
     confirmDangerousPermissions: values["confirm-dangerous-permissions"],
     confirmExecution: values["confirm-execution"],
     writeExecution: values.execution,
+    noUltracode: values["no-ultracode"],
     writePermissions: values["write-permissions"],
     deadlineAt,
   }));

@@ -16,7 +16,7 @@ generated worktree; Codex still integrates, validates, reviews, and reports.
 - Branch, implementation, validation, and fixes: GPT-6 Sol at `high`.
 - Finished-diff review: Claude Opus 5.5 (`claude-opus-5-5`) at `high` with
   Claude Code. Use Fable 5.1 only if the user specifically requests that
-  model; Sonnet 5 (`claude-sonnet-5`) is available at `ultracode`.
+  model; Sonnet 5.5 (`claude-sonnet-5-5`) is available at `high`.
 - Report: GPT-6 Sol at `high`.
 
 ## Select the executor
